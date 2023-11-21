@@ -12,6 +12,8 @@ select src_office_id
     , any(rid_hash) rid_example
 from history.assembly_task
 where dt >= toStartOfDay(now()) - interval 3 day
+    # а почему 3 дня?
+    # за последние 4е суток - чаще подразумевается 4 дня от сегодня. Сегодня как бы не считается.
 group by src_office_id
 order by qty desc
 
