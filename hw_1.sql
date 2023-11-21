@@ -12,6 +12,7 @@ select src_office_id
     , any(rid_hash) rid_example
 from history.assembly_task
 where date_diff('day', dt, now()) < 4
+    # нет, так нельзя. код рабочий, но так не делаем 
 group by src_office_id
 order by qty desc;
 
