@@ -11,9 +11,9 @@ select src_office_id
     , uniq(rid_hash) qty
     , any(rid_hash) rid_example
 from history.assembly_task
-where date_diff('day', dt, now()) < 4
+where dt >= toStartOfDay(now()) - interval 3 day
 group by src_office_id
-order by qty desc;
+order by qty desc
 
 -- 02
 -- По офису оформления src_office_id Электросталь вывести кол-во qty уникальных Сортированных заказов за каждый час dt_h,
@@ -34,6 +34,29 @@ select src_office_id
     , min(dt) dt_min
     , max(dt) dt_max
 from history.sorted
-where src_office_id = 241542 and date_diff('day', create_dt, now()) < 4
+where dt >= toStartOfDay(now()) - interval 3 day
+    and src_office_id = 241542
 group by dt_h, src_office_id
 order by dt_h
+
+-- 03
+-- За 7 дней по офису Екатеринбург вывести кол-во qty уникальных заказов за каждый час.
+-- Интересуют заказы отправленные на сборку. Таблица assembly_task_issued.
+-- Добавить колонку hour Час заказа. Например, 14.
+-- Оставить строки, в которых более 5т заказов. Также оставить строки с четными Часами в колонке hour.
+-- Упорядочить по офису и dt_h.
+-- Колонки: src_office_id, office_name, dt_h, qty, hour.
+
+select src_office_id
+    , dictGet('dictionary.BranchOffice','office_name', toUInt64(src_office_id)) office_name
+    , toStartOfHour(create_dt) dt_h
+    , uniq(rid_hash) qty
+    , toHour(create_dt) hour
+from history.assembly_task_issued
+where create_dt >= toStartOfDay(now()) - interval 6 day
+    and src_office_id = 3480
+    and hour % 2 = 0
+group by dt_h, src_office_id, hour
+having qty > 5000
+order by src_office_id, dt_h
+
