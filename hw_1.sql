@@ -11,9 +11,7 @@ select src_office_id
     , uniq(rid_hash) qty
     , any(rid_hash) rid_example
 from history.assembly_task
-where dt >= toStartOfDay(now()) - interval 3 day
-    # а почему 3 дня?
-    # за последние 4е суток - чаще подразумевается 4 дня от сегодня. Сегодня как бы не считается.
+where dt >= toStartOfDay(now()) - interval 4 day
 group by src_office_id
 order by qty desc
 
@@ -36,7 +34,7 @@ select src_office_id
     , min(dt) dt_min
     , max(dt) dt_max
 from history.sorted
-where dt >= toStartOfDay(now()) - interval 3 day
+where dt >= toStartOfDay(now()) - interval 4 day
     and src_office_id = 241542
 group by dt_h, src_office_id
 order by dt_h
@@ -51,14 +49,38 @@ order by dt_h
 
 select src_office_id
     , dictGet('dictionary.BranchOffice','office_name', toUInt64(src_office_id)) office_name
-    , toStartOfHour(create_dt) dt_h
+    , toStartOfHour(issued_dt) dt_h
     , uniq(rid_hash) qty
-    , toHour(create_dt) hour
+    , toHour(issued_dt) hour
 from history.assembly_task_issued
-where create_dt >= toStartOfDay(now()) - interval 6 day
+where create_dt >= toStartOfDay(now()) - interval 7 day
     and src_office_id = 3480
     and hour % 2 = 0
 group by dt_h, src_office_id, hour
 having qty > 5000
 order by src_office_id, dt_h
+
+-- 04
+-- По офису Хабаровск за последние 3 дня посчитать кол-во Доставленных заказов (таблица order_completed),
+--   которые были Оформлены (таблица assembly_task) в период между -7 и -3 дня.
+-- Также показать 1 пример заказа в колонке rid_example.
+-- Упорядочить по убыванию кол-ва.
+-- Колонки: dt_date, qty, rid_example.
+--  *Использовать подзапрос в блоке фильтрации для отбора заказов).
+
+select toDate(dt) dt_date
+    , uniq(rid_hash) qty
+    , any(rid_hash) rid_example
+from history.order_completed
+where dt >= toStartOfDay(now()) - interval 3 day
+    and rid_hash in
+    (
+        select rid_hash
+        from history.assembly_task
+        where dt between toStartOfDay(now()) - interval 7 day
+            and toStartOfDay(now()) - interval 3 day
+            and src_office_id = 2400
+    )
+group by dt_date
+order by qty desc
 
