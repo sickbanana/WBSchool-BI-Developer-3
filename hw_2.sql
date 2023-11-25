@@ -219,3 +219,5 @@ where dt_date >= toStartOfDay(now()) - interval 3 day
         having uniq(rid_hash) / (uniq(rid_hash))  between 0.3 and 0.5
     )
 limit 5 by src_office_id, dt_date
+
+# limit чаще всего используется с еще одним операндом, у тебя его не вижу
