@@ -168,6 +168,32 @@ order by partition, name
 -- Почему у некоторых заказов diff_h принимает аномально высокие или низкие значения. Написать словами почему так произошло.
 -- Какое условие в запрос можно добавить, чтобы это избежать.
 
+select rid_hash
+    , maxIf(dt, src = 'assembly_task_issued') dt_issued
+    , minIf(dt, src = 'sorted') dt_sorted
+    , dateDiff('hour', dt_issued, dt_sorted) diff_h
+    , uniq(shk_id) qty
+    , arraySort(groupArrayDistinctIf(shk_id, shk_id % 2 = 1)) shk_arr
+    , shk_arr[-1] item_last
+from
+(
+    select rid_hash, shk_id, issued_dt dt, 'assembly_task_issued' src
+    from history.assembly_task_issued
+    where issued_dt >= toStartOfDay(now()) - interval 3 day
+        and src_office_id = 2400
+    union all
+    select rid_hash, shk_id, dt, 'sorted' src
+    from history.sorted
+    where dt >= toStartOfDay(now()) - interval 3 day
+        and src_office_id = 2400
+)
+group by rid_hash
+having countIf(src, src = 'assembly_task_issued') > 0 and countIf(src, src = 'sorted') > 0
+order by diff_h desc
+limit 100
+
+-- diff_h принимает аномально высокие или низкие значения, когда возникает ситуация, что заказ есть только в таблице sorted или assembly_task_issued.
+-- Чтобы этого избежать, мы проверяем, что заказ есть в обоих таблицах.
 
 --=== Задание-3 ===--
 -- Для офисов, у которых за 3 дня было между 10т и 50т заказов в статусе Оформлен, вывести следующую информацию.
