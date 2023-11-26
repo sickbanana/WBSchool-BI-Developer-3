@@ -211,13 +211,20 @@ select src_office_id
 from history.rejected
 where dt_date >= toStartOfDay(now()) - interval 3 day
     and src_office_id in
-    (
-        select src_office_id
-        from history.assembly_task
-        where dt >= toStartOfDay(now()) - interval 3 day
-        group by src_office_id
-        having uniq(rid_hash) / (uniq(rid_hash))  between 0.3 and 0.5
-    )
+        (
+            select src_office_id
+            from
+            (
+                select src_office_id, rid_hash, 'assembly_task' src
+                from history.assembly_task
+                where dt >= toStartOfDay(now()) - interval 3 day
+                union all
+                select src_office_id, rid_hash, 'sorted' src
+                from history.sorted
+                where dt >= toStartOfDay(now()) - interval 3 day
+            )
+            group by src_office_id
+            having uniqIf(rid_hash, src = 'assembly_task') / uniqIf(rid_hash, src = 'sorted') between 0.3 and 0.5
+        )
+order by reject_dt
 limit 5 by src_office_id, dt_date
-
-# limit чаще всего используется с еще одним операндом, у тебя его не вижу
