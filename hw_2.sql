@@ -66,8 +66,8 @@ where dt >= toStartOfDay(now()) - interval 3 day
         group by src_office_id
         having uniq(rid_hash) between 10000 and 50000
     )
-order by dt, src_office_id
-limit 5 by dt_date, src_office_id
+order by src_office_id, dt_date
+limit 5 by src_office_id, dt_date
 
 # сортировки не хватает одной
 # правильнее все же так 
@@ -106,5 +106,5 @@ where dt_date >= toStartOfDay(now()) - interval 3 day
             group by src_office_id
             having uniqIf(rid_hash, src = 'assembly_task') / uniqIf(rid_hash, src = 'sorted') between 0.3 and 0.5
         )
-order by reject_dt, src_office_id
-limit 5 by dt_date ,src_office_id
+order by src_office_id, dt_date
+limit 5 by src_office_id, dt_date
