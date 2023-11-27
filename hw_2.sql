@@ -67,6 +67,7 @@ alter table tmp.table310 drop partition 20231124,
 
 -- 04 Удалить все данные в крайней старшей партиции через мутацию.
 alter table tmp.table310 delete where toYYYYMMDD(dt) = 20231121
+    # нет, так не пойдет. delete in partiton
 
 -- 05 Добавить колонку column10 в конец таблицы.
 alter table tmp.table310 add column column10 Int64 after dst_office_id
@@ -98,6 +99,7 @@ values (9999,now()-interval 1 day,9999,9999,9999, [1, 2, 3], [(now(), 1), (now()
 
 -- 11 Добавить материализованную колонку массив, чтобы она заполнялась из колонок dt, rid_hash.
 alter table tmp.table310 add column mat_array Tuple(DateTime, UInt64) materialized (dt, rid_hash)
+    # это просто tuple, не массив
 
 -- 12 Вставить 3 новые строки.
 insert into tmp.table310 (rid_hash, dt, shk_id, src_office_id, dst_office_id, array_of_positive, array_of_tuple)
@@ -138,6 +140,8 @@ settings index_granularity = 8192
 insert into tmp.table2_310
 select *
 from tmp.table310
+
+# так он не зальет materialized поля, их надо указывать явно
 
 optimize table tmp.table2_310 final
 -- 16 Добавить код запроса просмотра системной информации своей таблицы.
