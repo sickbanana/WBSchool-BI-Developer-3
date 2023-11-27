@@ -190,8 +190,9 @@ from
 group by rid_hash
 having countIf(src, src = 'assembly_task_issued') > 0 and countIf(src, src = 'sorted') > 0
 order by diff_h desc
-limit 100
 
+# а having countIf зачем?  "мы проверяем, что заказ есть в обоих таблицах" - для этого? - проще надо
+    
 -- diff_h принимает аномально высокие или низкие значения, когда возникает ситуация, что заказ есть только в таблице sorted или assembly_task_issued.
 -- Чтобы этого избежать, мы проверяем, что заказ есть в обоих таблицах.
 
@@ -219,6 +220,7 @@ where dt >= toStartOfDay(now()) - interval 3 day
     )
 order by dt
 limit 5 by src_office_id, dt_date
+# сортировки не хватает одной
 
 
 --=== Задание-4 ===--
