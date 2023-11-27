@@ -36,7 +36,7 @@ from
         and src_office_id = 2400
 )
 group by rid_hash
-having uniq(src) > 1
+having dt_issued != '1970-01-01 00:00:00' and dt_sorted != '1970-01-01 00:00:00'
 order by diff_h desc
 
 # а having countIf зачем?  "мы проверяем, что заказ есть в обоих таблицах" - для этого? - проще надо
