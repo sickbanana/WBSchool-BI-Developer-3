@@ -63,6 +63,8 @@ alter table tmp.table310 drop partition 20231124,
     drop partition 20231123,
     drop partition 20231122
 
+    # проверял - так работает?
+
 -- 04 Удалить все данные в крайней старшей партиции через мутацию.
 alter table tmp.table310 delete where toYYYYMMDD(dt) = 20231121
 
