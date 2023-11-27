@@ -68,7 +68,11 @@ where dt >= toStartOfDay(now()) - interval 3 day
     )
 order by dt, src_office_id
 limit 5 by dt_date, src_office_id
+
 # сортировки не хватает одной
+# правильнее все же так 
+# order by src_office_id, dt_date
+# limit 5 by src_office_id, dt_date
 
 
 --=== Задание-4 ===--
