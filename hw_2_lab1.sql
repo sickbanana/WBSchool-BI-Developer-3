@@ -64,11 +64,12 @@ alter table tmp.table310 drop partition 20231124,
     drop partition 20231122
 
     # проверял - так работает?
-    # проверял
+    # проверял - прям новый способ открыл )), молодец
 
 -- 04 Удалить все данные в крайней старшей партиции через мутацию.
 alter table tmp.table310 delete in partition 20231121 where 1 = 1
     # нет, так не пойдет. delete in partiton
+    # where 1 = 1 так не пишут. просто where 1  или where true
 
 -- 05 Добавить колонку column10 в конец таблицы.
 alter table tmp.table310 add column column10 Int64 after dst_office_id
@@ -142,7 +143,7 @@ insert into tmp.table2_310
 select *
 from tmp.table310
 
-# так он не зальет materialized поля, их надо указывать явно
+# так он не зальет materialized поля, их надо указывать явно - снимаем это замечание
 
 optimize table tmp.table2_310 final
 -- 16 Добавить код запроса просмотра системной информации своей таблицы.
