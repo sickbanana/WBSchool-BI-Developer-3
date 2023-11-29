@@ -268,3 +268,4 @@ limit 100
 
 -- 03 Удалить таблицу.
 drop table temp_table
+# drop table if exists temp_table -  лучше tak 
