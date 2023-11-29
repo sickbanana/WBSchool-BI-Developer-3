@@ -248,8 +248,23 @@ drop table temp_memory
 ---=== Часть 3. Временные таблицы. ===---
 
 -- 01 Создать временную таблицу. Струкрута такая же как и в предыдущем задании.
+create temporary table temp_table
+(
+    rid_hash      UInt64,
+    shk_id        Int64,
+    dt            DateTime,
+    src_office_id UInt32,
+    dst_office_id UInt32,
+    price_100     UInt32,
+    dt_load       DateTime,
+    src           String
+)
 
 -- 02 Залить в нее данные из тестового набора. Сдедать выборку 100 любых строк.
+insert into temp_table
+select rid_hash, shk_id, dt, src_office_id, dst_office_id, price_100, dt_load, src
+from tmp.table3_310
+limit 100
 
 -- 03 Удалить таблицу.
-
+drop table temp_table
