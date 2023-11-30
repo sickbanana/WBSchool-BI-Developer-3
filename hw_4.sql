@@ -47,3 +47,4 @@ select countIf(is_in, is_in = 1) qty_in
     , qty_out / uniq(employee_id) avg_out
 from history.turniket
 # это все одним запросом надо, а не 4
+# на каждого сотрудника - а у тебя что?
