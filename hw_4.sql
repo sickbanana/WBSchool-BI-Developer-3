@@ -38,18 +38,12 @@ group by  dt_date, office_id
 order by dt_date, office_id
 
 -- Кол-во входов.
-select countIf(is_in, is_in = 1) qty_in
-from history.turniket
-
 -- Кол-во выходов.
-select countIf(is_in, is_in = 0) qty_out
-from history.turniket
-
 -- Среднее кол-во входов на каждого сотрудника.
-select countIf(is_in, is_in = 1) / uniq(employee_id) avg_in
-from history.turniket
-
 -- Среднее кол-во выходов на каждого сотрудника.
-select countIf(is_in, is_in = 0) / uniq(employee_id) avg_out
+select countIf(is_in, is_in = 1) qty_in
+    , countIf(is_in, is_in = 0) qty_out
+    , qty_in / uniq(employee_id) avg_in
+    , qty_out / uniq(employee_id) avg_out
 from history.turniket
 # это все одним запросом надо, а не 4
