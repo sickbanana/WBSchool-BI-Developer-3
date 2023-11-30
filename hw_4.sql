@@ -45,3 +45,4 @@ from history.turniket
 group by  dt_date, office_id
 order by dt_date, office_id
 # это все одним запросом надо, а не 4
+# на каждого сотрудника - а у тебя что?
