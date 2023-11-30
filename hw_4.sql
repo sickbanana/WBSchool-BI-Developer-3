@@ -52,3 +52,4 @@ from history.turniket
 -- Среднее кол-во выходов на каждого сотрудника.
 select countIf(is_in, is_in = 0) / uniq(employee_id) avg_out
 from history.turniket
+# это все одним запросом надо, а не 4
