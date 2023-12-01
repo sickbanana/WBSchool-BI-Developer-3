@@ -46,3 +46,41 @@ group by  dt_date, office_id
 order by dt_date, office_id
 # это все одним запросом надо, а не 4
 # на каждого сотрудника - а у тебя что?
+
+-- 02
+-- Посчитать кол-во входов или выходов, которые были подряд у одного сотрудника.
+-- Если у сотрудника есть 5 входов подряд без единого выхода, тогда выводим 5.
+-- Колонки: employee_id 9847593487, qty_in 5. (Это пример результата)
+-- Выбрать одного сотрудника, у которого есть несколько входов или выходов подряд. -- В запросе его использовать.
+create temporary table seq as
+(
+    select employee_id
+        , dt
+        , is_in
+        , row_number
+        , is_in_prev
+        , any(row_number) over (rows between 1 following and 1 following) - row_number qty
+    from
+    (
+        select employee_id, dt, is_in
+            , row_number() over (order by dt) row_number
+            , any(is_in) over (rows between 1 preceding and 1 preceding) is_in_prev
+        from history.turniket
+        where employee_id = 25317
+    )
+    where (is_in = 0 and is_in_prev = 1)
+        or (is_in = 1 and is_in_prev = 0)
+)
+--входов подряд
+select employee_id, qty qty_in
+from seq
+where qty_in > 1
+    and is_in = 1
+--выходов подряд
+select employee_id, qty qty_out
+from seq
+where qty_out > 1
+    and is_in = 0
+
+drop table if exists seq
+
