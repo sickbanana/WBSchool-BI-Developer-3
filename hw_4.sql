@@ -84,5 +84,9 @@ from seq
 where qty_out > 1
     and is_in = 0
 
+# есть другие примеры employee_id?
+# where (is_in = 0 and is_in_prev = 1) or (is_in = 1 and is_in_prev = 0) - это условие на корректность вход\выход.
+# в seq у тебя избыточность данных - это усложняет.
+
 drop table if exists seq
 
