@@ -120,7 +120,7 @@ from
     select employee_id, dt dt_in, is_in
     from history.turniket
     where dt >= now() - interval 30 day
-        and employee_id = 1372890
+        and employee_id = 4629
         and is_in = 1
     ) l
 left asof join
@@ -128,28 +128,32 @@ left asof join
     select employee_id, dt dt_action, is_in
     from history.turniket
     where dt >= now() - interval 30 day
-        and employee_id = 1372890
+        and employee_id = 4629
     limit 100
 ) r
 on r.employee_id = l.employee_id and r.dt_action < l.dt_in
 where date_diff('hour', dt_action, dt_in) > 7
 )
-select employee_id, l.dt_in dt_smena_start
-    , if(r.dt_action = '1970-01-01 00:00:00', dt_smena_start + interval 12 hour,r.dt_action) dt_smena_end
+select argMin(employee_id, l.dt_in) employee_id
+    , min(l.dt_in) dt_smena_start
+    , if(dt_action = '1970-01-01 00:00:00'
+        or argMin(r.is_in, l.dt_in) = 1, dt_smena_start + interval 12 hour
+        , argMin(r.dt_action, l.dt_in) as dt_action) dt_smena_end
 from
 (
     select employee_id, dt_in, is_in
     from shift
-    ) l
+) l
 left asof join
 (
     select employee_id, dt_action, is_in
     from shift
 ) r
 on r.employee_id = l.employee_id and r.dt_action > l.dt_in
+group by toDate(l.dt_in)
 order by dt_smena_start
 
-#employee_id = 4629 - что то с этим плохо работает,черезчур много 'смен' у него 
+#employee_id = 4629 - что то с этим плохо работает,черезчур много 'смен' у него
 
 -- 04
 -- Сделать запрос для расчета смен. Применить оконную функцию.
