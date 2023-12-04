@@ -149,6 +149,8 @@ left asof join
 on r.employee_id = l.employee_id and r.dt_action > l.dt_in
 order by dt_smena_start
 
+#employee_id = 4629 - что то с этим плохо работает,черезчур много 'смен' у него 
+
 -- 04
 -- Сделать запрос для расчета смен. Применить оконную функцию.
 
