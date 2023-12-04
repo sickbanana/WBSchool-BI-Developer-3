@@ -112,7 +112,7 @@ with shift as
 (
 select employee_id
     , dt_action
-    , r.is_in
+    , r.is_in is_in_action
     , dt_in
     , l.is_in
 from
@@ -129,7 +129,6 @@ left asof join
     from history.turniket
     where dt >= now() - interval 30 day
         and employee_id = 4629
-    limit 100
 ) r
 on r.employee_id = l.employee_id and r.dt_action < l.dt_in
 where date_diff('hour', dt_action, dt_in) > 7
@@ -137,7 +136,7 @@ where date_diff('hour', dt_action, dt_in) > 7
 select argMin(employee_id, l.dt_in) employee_id
     , min(l.dt_in) dt_smena_start
     , if(dt_action = '1970-01-01 00:00:00'
-        or argMin(r.is_in, l.dt_in) = 1, dt_smena_start + interval 12 hour
+        or argMin(r.is_in_action, l.dt_in) = 1, dt_smena_start + interval 12 hour
         , argMin(r.dt_action, l.dt_in) as dt_action) dt_smena_end
 from
 (
@@ -146,7 +145,7 @@ from
 ) l
 left asof join
 (
-    select employee_id, dt_action, is_in
+    select employee_id, dt_action, is_in_action
     from shift
 ) r
 on r.employee_id = l.employee_id and r.dt_action > l.dt_in
