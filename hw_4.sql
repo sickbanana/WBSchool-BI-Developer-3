@@ -57,14 +57,11 @@ order by dt_date, office_id
 create temporary table seq as
 (
     select employee_id
-        , dt
         , is_in
-        , row_number
-        , is_in_prev
         , any(row_number) over (rows between 1 following and 1 following) - row_number qty
     from
     (
-        select employee_id, dt, is_in
+        select employee_id, is_in
             , row_number() over (order by dt) row_number
             , any(is_in) over (rows between 1 preceding and 1 preceding) is_in_prev
         from history.turniket
@@ -88,5 +85,80 @@ where qty_out > 1
 # where (is_in = 0 and is_in_prev = 1) or (is_in = 1 and is_in_prev = 0) - это условие на корректность вход\выход.
 # в seq у тебя избыточность данных - это усложняет.
 
+# например 454407
+# я проверяю, что началась последовательность входов или выходов подряд, хотя она может состоять из 1 элемента
+
+#Антон предложил написать альтернотивное решение, могу переделать на массвы, я так понимаю это более предпочтительное решение
+
 drop table if exists seq
 
+-- 03
+-- Сделать запрос для расчета смен. Применить asof join.
+-- Показать запрос для какого-нибудь 1го сотрудника, у которого много выходов-выходов
+--   и который часто выходит в течении смены "Подышать воздухом".
+-- Критерии смены:
+-- Выход(событие-1) и Вход(событие-2), между которыми более 7 часов. Вход(событие-2) является началом смены.
+-- Вход(событие-1) и Вход(событие-2), между которыми более 12+7 часов. Вход(событие-2) является началом смены.
+-- а)  При расчете смен в строке получаем выход предыдущей смены и вход в новой смене. Но это не окончательный вид, который нужен.
+--     Нам в результате нужно, чтобы начало и конец смены относились к одной смене и были в одной строке.
+--     Правильный вид строки со сменой: employee_id ______, dt_smena_start '2023-11-25 11:15:23', dt_smena_end '2023-11-25 20:25:47'.
+-- б)* Учесть нюанс. Человек мог выйти на работу в первый рабочий день, т.е. в выборке нет предыдущего событие-1.
+--     Но вход все равно есть, и это начало смены. Нужно не потерять эту смену.
+-- в)* Учесть нюанс. Человек мог прийти на работу и до сих пор работать, т.е. текущая смена еще не закончена.
+--     Нужно не потерять эту смену.
+
+
+with shift as
+(
+select employee_id
+    , dt_action
+    , r.is_in
+    , dt_in
+    , l.is_in
+from
+(
+    select employee_id, dt dt_in, is_in
+    from history.turniket
+    where dt >= now() - interval 30 day
+        and employee_id = 1372890
+        and is_in = 1
+    ) l
+left asof join
+(
+    select employee_id, dt dt_action, is_in
+    from history.turniket
+    where dt >= now() - interval 30 day
+        and employee_id = 1372890
+    limit 100
+) r
+on r.employee_id = l.employee_id and r.dt_action < l.dt_in
+where date_diff('hour', dt_action, dt_in) > 7
+)
+select employee_id, l.dt_in dt_smena_start
+    , if(r.dt_action = '1970-01-01 00:00:00', dt_smena_start + interval 12 hour,r.dt_action) dt_smena_end
+from
+(
+    select employee_id, dt_in, is_in
+    from shift
+    ) l
+left asof join
+(
+    select employee_id, dt_action, is_in
+    from shift
+) r
+on r.employee_id = l.employee_id and r.dt_action > l.dt_in
+order by dt_smena_start
+
+-- 04
+-- Сделать запрос для расчета смен. Применить оконную функцию.
+
+
+-- 05
+-- Сделать запрос для расчета смен. Решить через массивы и лямбда-выражение.
+
+-- 06*
+-- Посчитать среднее время длительности смены по каждому офису и за каждый день.
+
+-- 07*
+-- В какие часы происходит наибольшее начало смен по каждому офису. Вывести топ-3 часов по каждому офису.
+-- В какие часы происходит наибольшее окончание смен по каждому офису. Вывести топ-3 часов по каждому офису.
