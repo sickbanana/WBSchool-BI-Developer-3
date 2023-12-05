@@ -168,7 +168,7 @@ from
     where employee_id = 4629
 )
 where date_diff('hour', dt_prev, dt) > 7
-    and is_in = 1;
+    and is_in = 1
 
 -- 05
 -- Сделать запрос для расчета смен. Решить через массивы и лямбда-выражение.
@@ -193,10 +193,34 @@ select employee_id
 from history.turniket
 where employee_id = 4629
 group by employee_id
-)
+);
 
 -- 06*
 -- Посчитать среднее время длительности смены по каждому офису и за каждый день.
+select office_id
+    , toDate(dt_smena_start) dt_date
+    , round(avg(diff_h)) avg_h
+from
+(
+    select employee_id
+        , office_id
+        , dt dt_smena_start
+        , if(any(dt_prev) over (rows between 1 following and 1 following) as dt_next = '1970-01-01 00:00:00'
+            or any(employee_id) over (rows between 1 following and 1 following) != employee_id
+        , dt_smena_start + interval 12 hour, dt_next) dt_smena_end
+        , date_diff('hour', dt_smena_start, dt_smena_end) diff_h
+    from
+    (
+        select employee_id, office_id, dt, is_in
+            , any(dt) over (partition by employee_id order by dt rows between 1 preceding and 1 preceding) dt_prev
+        from history.turniket
+    )
+    where date_diff('hour', dt_prev, dt) > 7
+    and is_in = 1
+)
+group by office_id, dt_date
+order by office_id, dt_date
+
 
 -- 07*
 -- В какие часы происходит наибольшее начало смен по каждому офису. Вывести топ-3 часов по каждому офису.
