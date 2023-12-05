@@ -168,13 +168,32 @@ from
     where employee_id = 4629
 )
 where date_diff('hour', dt_prev, dt) > 7
-    and is_in = 1
-
-
-
+    and is_in = 1;
 
 -- 05
 -- Сделать запрос для расчета смен. Решить через массивы и лямбда-выражение.
+select employee_id
+    , (arrayJoin(arrayZip(arr_dt_start, arr_dt_finish)) as dt_turple).1 dt_smena_start
+    , dt_turple.2 dt_smena_end
+from
+(
+select employee_id
+    , arrayMap(x -> (if((arr[x - 1].2 = 0 and date_diff('hour',arr[x - 1].1, arr[x].1) > 7)
+        or (arr[x - 1].2 = 1 and date_diff('hour',arr[x - 1].1, arr[x].1) > 7+12),
+        arr[x].1,
+        toDateTime(0))), arrayEnumerate(arr)) arr_dt_start_src
+    , arrayFilter(x -> x != '1970-01-01 00:00:00', arr_dt_start_src) arr_dt_start
+    , arrayMap(x -> (if((arr[x - 1].2 = 0 and date_diff('hour',arr[x - 1].1, arr[x].1) > 7)
+        or (arr[x - 1].2 = 1 and date_diff('hour',arr[x - 1].1, arr[x].1) > 7+12),
+        arr[x-1].1,
+        toDateTime(0))), arrayEnumerate(arr)) arr_dt_finish_src
+    , arrayConcat(arrayFilter(x -> x != '1970-01-01 00:00:00', arr_dt_finish_src)
+        , [arr_dt_start[-1] + interval 12 hour]) arr_dt_finish
+    , arraySort(groupArray((dt, is_in))) arr
+from history.turniket
+where employee_id = 4629
+group by employee_id
+)
 
 -- 06*
 -- Посчитать среднее время длительности смены по каждому офису и за каждый день.
