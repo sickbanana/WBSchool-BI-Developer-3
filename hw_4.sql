@@ -193,7 +193,7 @@ select employee_id
 from history.turniket
 where employee_id = 4629
 group by employee_id
-);
+)
 
 -- 06*
 -- Посчитать среднее время длительности смены по каждому офису и за каждый день.
