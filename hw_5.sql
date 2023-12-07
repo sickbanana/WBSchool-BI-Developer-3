@@ -30,7 +30,7 @@ select rid_hash
     , max(dt) dt_last
     , 1 is_deleted
 from current.ridHello
-where dt >= (select max(dt_last) from report.orders_not_in_assembly_310 where is_deleted = 0) - interval 10 hour
+where dt >= (select max(dt_last) from report.orders_not_in_assembly_310) - interval 10 hour
     and rid_hash in (select rid_hash from report.orders_not_in_assembly_310 final where is_deleted = 0)
 group by rid_hash
 having argMax(src, dt) != 'assembly_task'
@@ -67,8 +67,9 @@ having argMax(src, dt) = 'assembly_task'
 select src_office_id
     , dictGet('dictionary.BranchOffice','office_name', toUInt64(src_office_id)) office_name
     , toDate(dt_last) dt_date
-    , uniq(rid_hash) qty
-from report.orders_not_in_assembly_310
+    , count(rid_hash) qty
+from report.orders_not_in_assembly_310 final
+where is_deleted = 0
 group by src_office_id, dt_date
 order by src_office_id, dt_date
 # a тут не надо на is_delete условие?
