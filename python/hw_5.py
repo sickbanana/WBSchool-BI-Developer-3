@@ -19,6 +19,15 @@ client = Client(data['server'][0]['host'],
                 settings={"numpy_columns": False, 'use_numpy': False},
                 compression=True)
 
+# 04
+# В питон скрипте донаписать генерацию последовательности для функции квантиль с нужным шагом. от 0.1 до 0.01.
+# Это: (0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9).
+step = 0.05
+quantiles = []
+for i in range(1, round(1 / step)):
+    quantiles.append((round(i * step, len(str(step)) - 1)))
+
+quantiles = tuple(quantiles)
 
 # Расчитываем квантили.
 qvantiles_sql = f"""
@@ -27,7 +36,7 @@ qvantiles_sql = f"""
     (
         select arrayPushFront(qvan3, min(rid_hash)) qvan4
              , length(qvan4) qty
-             , quantiles(0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9)(rid_hash) qvan
+             , quantiles{quantiles}(rid_hash) qvan
              , arrayMap(x -> toUInt64(x), qvan) qvan2
              , arrayPushBack(qvan2, max(rid_hash)) qvan3
         from {src_table}
