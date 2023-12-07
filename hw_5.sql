@@ -36,8 +36,9 @@ group by rid_hash
 having argMax(src, dt) != 'assembly_task'
     or dt_last > dt_max_time - interval 8 hour
 order by rid_hash
-limit 10
 # orders_not_in_assembly_310 - какой движек?
+
+# ReplacingMergeTree, в плане что дата всегда последняя? но без max не работает, или я что-то не так понял
 
 -- 03
 -- Дописать запрос.
@@ -53,8 +54,20 @@ select rid_hash
     , max(dt) dt_last
     , 0 is_deleted
 from current.ridHello
-where dt >= (select max(dt_last) from report.orders_not_in_assembly where is_deleted = 0) - interval 10 hour
+where dt >= (select max(dt_last) from report.orders_not_in_assembly_310 where is_deleted = 0) - interval 10 hour
     and rid_hash not in (select rid_hash from report.orders_not_in_assembly_310 where is_deleted = 0)
 group by rid_hash
 having argMax(src, dt) = 'assembly_task'
     and dt_last < dt_max_time - interval 8 hour
+
+-- 05
+-- Написать запрос к витрине.
+-- Кол-во заказов по каждому офису оформления и за каждый день.
+-- Добавить колонку Имя офиса. Упорядочить по офису и по дате.
+select src_office_id
+    , dictGet('dictionary.BranchOffice','office_name', toUInt64(src_office_id)) office_name
+    , toDate(dt_last) dt_date
+    , uniq(rid_hash) qty
+from report.orders_not_in_assembly_310
+group by src_office_id, dt_date
+order by src_office_id, dt_date
