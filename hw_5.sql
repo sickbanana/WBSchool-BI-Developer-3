@@ -37,6 +37,7 @@ having argMax(src, dt) != 'assembly_task'
     or dt_last > dt_max_time - interval 8 hour
 order by rid_hash
 limit 10
+# orders_not_in_assembly_310 - какой движек?
 
 -- 03
 -- Дописать запрос.
