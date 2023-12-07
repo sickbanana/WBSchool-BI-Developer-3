@@ -69,3 +69,5 @@ select src_office_id
 from report.orders_not_in_assembly_310
 group by src_office_id, dt_date
 order by src_office_id, dt_date
+# a тут не надо на is_delete условие?
+# и final?
