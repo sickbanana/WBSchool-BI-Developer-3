@@ -31,7 +31,7 @@ select rid_hash
     , 1 is_deleted
 from current.ridHello
 where dt >= (select max(dt_last) from report.orders_not_in_assembly_310 where is_deleted = 0) - interval 10 hour
-    and rid_hash in (select rid_hash from report.orders_not_in_assembly_310 where is_deleted = 0)
+    and rid_hash in (select rid_hash from report.orders_not_in_assembly_310 final where is_deleted = 0)
 group by rid_hash
 having argMax(src, dt) != 'assembly_task'
     or dt_last > dt_max_time - interval 8 hour
@@ -55,7 +55,7 @@ select rid_hash
     , 0 is_deleted
 from current.ridHello
 where dt >= (select max(dt_last) from report.orders_not_in_assembly_310 where is_deleted = 0) - interval 10 hour
-    and rid_hash not in (select rid_hash from report.orders_not_in_assembly_310 where is_deleted = 0)
+    and rid_hash not in (select rid_hash from report.orders_not_in_assembly_310 final where is_deleted = 0)
 group by rid_hash
 having argMax(src, dt) = 'assembly_task'
     and dt_last < dt_max_time - interval 8 hour
