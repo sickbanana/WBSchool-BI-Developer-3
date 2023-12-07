@@ -26,6 +26,7 @@ step = 0.05
 quantiles = []
 for i in range(1, round(1 / step)):
     quantiles.append((round(i * step, len(str(step)) - 1)))
+# в принципе можно, но лучше List Comprehension
 
 quantiles = tuple(quantiles)
 
