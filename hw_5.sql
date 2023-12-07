@@ -37,6 +37,8 @@ having argMax(src, dt) != 'assembly_task'
     or dt_last > dt_max_time - interval 8 hour
 order by rid_hash
 # orders_not_in_assembly_310 - какой движек?
+# dt >= (select max(dt_last) from report.orders_not_in_assembly_310 where is_deleted = 0) если у тебя условие на is_deleted, то нужен final
+# но чет похоже оно тут лишнее - where is_deleted = 0
 
 -- 03
 -- Дописать запрос.
