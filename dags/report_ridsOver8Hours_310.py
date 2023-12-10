@@ -19,7 +19,7 @@ default_args = {
 dag = DAG(
     dag_id='report_ridsOver8Hours_310',
     default_args=default_args,
-    schedule_interval='45 * * * *',
+    schedule_interval='42 * * * *',
     description='Заказы более 8 часов.',
     catchup=False,
     max_active_runs=1,
@@ -70,6 +70,7 @@ def main():
     """
 
     client.execute(delete_query)
+    print('Добавлены данные с флагом is_deleted = 1')
 
     insert_query = f"""
         insert into {dst_table}
@@ -91,6 +92,7 @@ def main():
     """
 
     client.execute(insert_query)
+    print('Добавлены новые данные')
 
 task1 = PythonOperator(
     task_id='report_ridsOver8Hours_310', python_callable=main, dag=dag)
