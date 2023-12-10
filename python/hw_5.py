@@ -22,7 +22,7 @@ client = Client(data['server'][0]['host'],
 # 04
 # В питон скрипте донаписать генерацию последовательности для функции квантиль с нужным шагом. от 0.1 до 0.01.
 # Это: (0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9).
-step = 0.05
+step = 0.1
 quantiles = [(round(i * step, len(str(step)) - 1)) for i in range(1, round(1 / step))]
 # в принципе можно, но лучше List Comprehension
 

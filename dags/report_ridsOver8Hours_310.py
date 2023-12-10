@@ -48,7 +48,7 @@ dst_table = 'report.orders_not_in_assembly_310'
 
 
 def main():
-    # Расчитываем квантили.
+
     delete_query = f"""
         insert into {dst_table}
         with
@@ -70,7 +70,6 @@ def main():
     """
 
     client.execute(delete_query)
-    print()
 
     insert_query = f"""
         insert into {dst_table}
