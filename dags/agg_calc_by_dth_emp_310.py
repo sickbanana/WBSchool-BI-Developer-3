@@ -58,6 +58,7 @@ def main():
     from {src_table}
     where dt_h_msk >= (select max(dt_h_msk) from {dst_table})
     -- final забыл
+    -- зачем нам final если есть max? 
     group by prodtype_id, dt_h, dt_h_msk, employee_id, office_id, calc_date
     """
 
