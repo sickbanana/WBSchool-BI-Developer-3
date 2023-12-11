@@ -47,3 +47,47 @@ group by office_id
 
 --Движок - mergeTree, сортировка по id операции и локальному времени, партиционирование по неделям, TTL - 3 недели, если dt будет отставать больше чем на 3 недели запись будет удалена.
 
+
+
+-- 03. Сделать таблицу со своим номером в схеме agg. Пример: agg.calc_by_dth_emp_3__
+-- Добавить колонку dt_date от dt_h.
+-- Подобрать сортировку.
+-- Сделать партиционирование по одному дню от dt_h.
+-- Сделать TTL 30 дней.
+
+drop table if exists agg.calc_by_dth_emp_310
+create table agg.calc_by_dth_emp_310
+(
+    `office_id` UInt64,
+    `employee_id` UInt32,
+    `dt_h` DateTime,
+    `dt_h_msk` DateTime,
+    `prodtype_id` UInt64,
+    `qty_oper` UInt64,
+    `amount` Decimal(38, 2),
+    `calc_date` Date,
+    `dt_date` Date materialized toDate(dt_h)
+)
+engine = ReplacingMergeTree()
+order by (employee_id, prodtype_id, dt_h)
+partition by toStartOfDay(dt_h)
+ttl toStartOfDay(dt_h) + interval 30 day
+settings index_granularity = 8192
+
+-- 04. Заполнить витрину через Python за все дни.
+-- Заполнять итеративно по суткам.
+-- Сколько строк получилось.
+-- Скрипт выложить в гит.
+
+select office_id
+     , employee_id
+     , toStartOfHour(dt) dt_h
+     , toStartOfHour(msk_dt) dt_h_msk
+     , prodtype_id
+     , count(dt) qty_oper
+     , sum(amount) amount
+     , calc_date
+from history.calc
+where dt between now() - interval 2 day and now() - interval 1 day
+group by prodtype_id, dt_h, dt_h_msk, employee_id, office_id, calc_date
+
