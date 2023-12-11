@@ -2,6 +2,11 @@ import datetime
 import json
 from clickhouse_driver import Client
 
+# 04. Заполнить витрину через Python за все дни.
+# Заполнять итеративно по суткам.
+# Сколько строк получилось.
+# Скрипт выложить в гит.
+
 dbname = 'agg'
 src_table = 'history.calc'
 dst_table = 'agg.calc_by_dth_emp_310'

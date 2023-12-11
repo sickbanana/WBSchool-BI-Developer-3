@@ -17,7 +17,7 @@ default_args = {
 dag = DAG(
     dag_id='agg_calc_by_dth_emp_310',
     default_args=default_args,
-    schedule_interval='42 * * * *',
+    schedule_interval='11,31,51 * * * *',
     description='Заказы более 8 часов.',
     catchup=False,
     max_active_runs=1,
@@ -64,3 +64,9 @@ def main():
 
 task1 = PythonOperator(
     task_id='agg_calc_by_dth_emp_310', python_callable=main, dag=dag)
+
+# Почему не используем выполнение дагов во время, которое кратно 5 минутам.
+# Почему исключаем диапазон рядом с началом каждого часа.
+
+# Мы не используем это время, потому что оно очень популярное.
+# То есть в это время могут одновременно работать несколько дагов, и они будут сильно грузить сервер.
