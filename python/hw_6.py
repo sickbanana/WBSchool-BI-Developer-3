@@ -25,7 +25,7 @@ client = Client(data['server'][0]['host'],
                 compression=True)
 
 query_len = 0
-
+# если в оригинальной таблице будет заптси от октября, то в твою витрину они не попадут 
 for i in range(1, 31):
 
     print(f"Итерация: {i}. Обрабатываются заказы: за {i} день.")
@@ -41,6 +41,8 @@ for i in range(1, 31):
             , calc_date
         from {src_table}
         where dt between now() - interval {i} day and now() - interval {i -1} day
+        -- у тебя ещё будут затрагиваться операции из первого часа следующего дня
+        -- лучше перепиши через уровнения 
         group by prodtype_id, dt_h, dt_h_msk, employee_id, office_id, calc_date
         """
 
