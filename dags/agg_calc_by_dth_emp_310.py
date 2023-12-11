@@ -18,7 +18,9 @@ dag = DAG(
     dag_id='agg_calc_by_dth_emp_310',
     default_args=default_args,
     schedule_interval='12,32,52 * * * *',
-    # напиши ещё одним вариантом промежутком
+    
+    # напиши ещё одним вариантом промежуток
+    
     description='Заказы более 8 часов.',
     catchup=False,
     max_active_runs=1,
@@ -59,6 +61,7 @@ def main():
     where dt_h_msk >= (select max(dt_h_msk) from {dst_table})
     -- final забыл
     -- зачем нам final если есть max? 
+    -- нужно последнее состояние таблицы и при работе с replacing лучше всегда укзывать final
     group by prodtype_id, dt_h, dt_h_msk, employee_id, office_id, calc_date
     """
 
