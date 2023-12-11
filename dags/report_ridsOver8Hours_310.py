@@ -70,7 +70,7 @@ def main():
     """
 
     client.execute(delete_query)
-    print('Добавлены данные с флагом is_deleted = 1')
+    print(f"Добавлены данные с флагом is_deleted = 1")
 
     insert_query = f"""
         insert into {dst_table}
@@ -92,7 +92,7 @@ def main():
     """
 
     client.execute(insert_query)
-    print('Добавлены новые данные')
+    print(f"Добавлены новые данные")
 
 task1 = PythonOperator(
     task_id='report_ridsOver8Hours_310', python_callable=main, dag=dag)

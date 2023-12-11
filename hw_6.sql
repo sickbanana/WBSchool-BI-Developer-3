@@ -91,3 +91,21 @@ from history.calc
 where dt between now() - interval 2 day and now() - interval 1 day
 group by prodtype_id, dt_h, dt_h_msk, employee_id, office_id, calc_date
 
+-- 05. Сделать даг на инкрементальное пополнение витрины.
+-- Заполнять начиная с последнего часа dt_h_msk, который есть в витрине.
+-- Расписание: каждые 20 минут. Разрешенный диапазон расписания 5-55 минут.
+-- Почему не используем выполнение дагов во время, которое кратно 5 минутам.
+-- Почему исключаем диапазон рядом с началом каждого часа.
+
+select office_id
+     , employee_id
+     , toStartOfHour(dt) dt_h
+     , toStartOfHour(msk_dt) dt_h_msk
+     , prodtype_id
+     , count(dt) qty_oper
+     , sum(amount) amount
+     , calc_date
+from history.calc
+where dt_h_msk >= (select max(dt_h_msk) from agg.calc_by_dth_emp_310)
+group by prodtype_id, dt_h, dt_h_msk, employee_id, office_id, calc_date
+

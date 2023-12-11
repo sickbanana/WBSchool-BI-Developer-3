@@ -19,12 +19,13 @@ client = Client(data['server'][0]['host'],
                 settings={"numpy_columns": False, 'use_numpy': False},
                 compression=True)
 
+query_len = 0
+
 for i in range(1, 31):
 
     print(f"Итерация: {i}. Обрабатываются заказы: за {i} день.")
 
-    insert_query = f"""
-        insert into {dst_table}
+    select_query = f"""
         select office_id
             , employee_id
             , toStartOfHour(dt) dt_h
@@ -38,6 +39,11 @@ for i in range(1, 31):
         group by prodtype_id, dt_h, dt_h_msk, employee_id, office_id, calc_date
         """
 
-    client.execute(insert_query)
+    data = client.execute(select_query)
 
-print(f"Таблица {dst_table} заполнена.")
+    client.execute(f"insert into {dst_table} values", data)
+
+    query_len += len(data)
+
+print(f"Добавлено {query_len} данных")
+print(f"Таблица заполнена.")
