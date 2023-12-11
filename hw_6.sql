@@ -6,6 +6,7 @@ select count() qty
 from history.calc
 
 --кол-во сотрудников в каждом оффисе
+    -- не стоит работать со всей таблицей, выбери промежуток 
 select office_id
     , dictGet('dictionary.BranchOffice','office_name', toUInt64(office_id)) office_name
     , uniq(employee_id) qty
@@ -13,6 +14,8 @@ from history.calc
 group by office_id
 
 --10 самых оплачиваемых операций
+    -- в таблице помимо выплат присутствуют штрафы
+    -- штраф как-то не особо может быть оплачиваемым, скорее взымаемым 
 select prodtype_id
     , dictGet('dictionary.ProdType','prodtype_name', prodtype_id) prodtype_name
     , round(avg(amount)) avg_amount
