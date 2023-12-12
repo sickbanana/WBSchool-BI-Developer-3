@@ -11,7 +11,12 @@ select office_id
     , dictGet('dictionary.BranchOffice','office_name', toUInt64(office_id)) office_name
     , uniq(employee_id) qty
 from history.calc
+where dt >= now() - interval 10 day
 group by office_id
+
+select ProdTypePart_name
+from dict_prodType
+group by ProdTypePart_name
 
 --10 самых оплачиваемых операций
     -- в таблице помимо выплат присутствуют штрафы
@@ -20,6 +25,7 @@ select prodtype_id
     , dictGet('dictionary.ProdType','prodtype_name', prodtype_id) prodtype_name
     , round(avg(amount)) avg_amount
 from history.calc
+where dictGet('dictionary.ProdType','ProdTypePart_id', prodtype_id) != 0
 group by prodtype_id
 order by avg_amount desc
 limit 10
