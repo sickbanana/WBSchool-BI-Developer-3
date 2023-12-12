@@ -95,6 +95,16 @@ settings index_granularity = 8192
 -- Сколько строк получилось.
 -- Скрипт выложить в гит.
 
+select toStartOfDay(max(dt)) + interval 1 day
+    , date_diff('day', min(dt), max(dt))
+from history.calc;
+
+
+with
+(select toStartOfDay(max(dt)) + interval 1 day
+from history.calc
+)
+as max_d
 select office_id
      , employee_id
      , toStartOfHour(dt) dt_h
@@ -104,7 +114,7 @@ select office_id
      , sum(amount) amount
      , calc_date
 from history.calc
-where dt >= toStartOfDay(now()) - interval 2 day and dt < toStartOfDay(now()) - interval 1 day
+where dt >= max_d - interval 2 day and dt < max_d - interval 1 day
 group by prodtype_id, dt_h, dt_h_msk, employee_id, office_id, calc_date
 
 -- 05. Сделать даг на инкрементальное пополнение витрины.

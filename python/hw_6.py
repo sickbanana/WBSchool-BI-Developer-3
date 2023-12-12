@@ -24,14 +24,25 @@ client = Client(data['server'][0]['host'],
                 settings={"numpy_columns": False, 'use_numpy': False},
                 compression=True)
 
-query_len = 0
 # если в оригинальной таблице будет заптси от октября, то в твою витрину они не попадут 
 # я немного не понял, у нашей же витрины ttl 30 дней
 # это да, но данные у тебя в таблице не за все 30 дней сейчас есть, а твой код за них тоже отработает, но ничего не найдёт
 # лучше будет узнать разницу между максимальной и минимальной датой в изначальной таблице
 
 # кстати, за сегодняшний день у тебя запрос не отработоет
-for i in range(1, 31):
+diff_day_query = f""" 
+    select toStartOfDay(max(dt)) + interval 1 day,
+        date_diff('day', min(dt), max(dt))
+    from {src_table}
+    """
+
+max_day = client.execute(diff_day_query)[0][0]
+diff_day = client.execute(diff_day_query)[0][1]
+
+query_len = 0
+
+for i in range(1, diff_day + 1):
+
 
     print(f"Итерация: {i}. Обрабатываются заказы: за {i} день.")
 
@@ -45,7 +56,7 @@ for i in range(1, 31):
             , sum(amount) amount
             , calc_date
         from {src_table}
-        where dt >= toStartOfDay(now()) - interval {i} day and toStartOfDay(now()) < interval {i -1} day
+        where dt >= toDateTime('{max_day}') - interval {i} day and dt < toDateTime('{max_day}') - interval {i -1} day
         -- у тебя ещё будут затрагиваться операции из первого часа следующего дня
         -- лучше перепиши через уровнения 
 
