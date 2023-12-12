@@ -39,7 +39,7 @@ diff_day = client.execute(diff_day_query)[0][0]
 
 query_len = 0
 
-for i in range(0, diff_day + 1):
+for i in range(diff_day + 1):
 
 
     print(f"Итерация: {i}. Обрабатываются заказы: за {i} день.")
