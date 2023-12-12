@@ -6,7 +6,8 @@ select count() qty
 from history.calc
 
 --кол-во сотрудников в каждом оффисе
-    -- не стоит работать со всей таблицей, выбери промежуток 
+    -- не стоит работать со всей таблицей, выбери промежуток
+    -- now() тоже не стоит использовать, у тебя получается - 24 часа, а не вес предыдущий день
 select office_id
     , dictGet('dictionary.BranchOffice','office_name', toUInt64(office_id)) office_name
     , uniq(employee_id) qty
@@ -20,12 +21,14 @@ group by ProdTypePart_name
 
 --10 самых оплачиваемых операций
     -- в таблице помимо выплат присутствуют штрафы
-    -- штраф как-то не особо может быть оплачиваемым, скорее взымаемым 
+    -- штраф как-то не особо может быть оплачиваемым, скорее взымаемым
 select prodtype_id
     , dictGet('dictionary.ProdType','prodtype_name', prodtype_id) prodtype_name
     , round(avg(amount)) avg_amount
 from history.calc
 where dictGet('dictionary.ProdType','ProdTypePart_id', prodtype_id) != 0
+    -- не обязательно, можешь посмотреть статусы 4001-4071
+    -- лучше выбери определеные статусы сборки и по ним смотри
 group by prodtype_id
 order by avg_amount desc
 limit 10
