@@ -45,7 +45,7 @@ for i in range(1, 31):
             , sum(amount) amount
             , calc_date
         from {src_table}
-        where dt between now() - interval {i} day and now() - interval {i -1} day
+        where dt >= toStartOfDay(now()) - interval {i} day and toStartOfDay(now()) < interval {i -1} day
         -- у тебя ещё будут затрагиваться операции из первого часа следующего дня
         -- лучше перепиши через уровнения 
 
