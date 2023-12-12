@@ -64,6 +64,7 @@ for i in range(1, diff_day + 1):
         -- now() - interval 1 day это не за день, а за последние 24 часа, есть другая функция для дня
 
         -- норм, но лучше используй что-то из этого набора: select toStartOfDay(now()), toDate(now()), today()
+        -- и кстати, сегодняшний день у тебя не предусмотрен
         
         group by prodtype_id, dt_h, dt_h_msk, employee_id, office_id, calc_date
         """
