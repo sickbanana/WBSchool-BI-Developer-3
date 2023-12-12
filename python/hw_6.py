@@ -31,17 +31,15 @@ client = Client(data['server'][0]['host'],
 
 # кстати, за сегодняшний день у тебя запрос не отработоет
 diff_day_query = f""" 
-    select toStartOfDay(max(dt)) + interval 1 day,
-        date_diff('day', min(dt), max(dt))
+    select date_diff('day', min(dt), max(dt))
     from {src_table}
     """
 
-max_day = client.execute(diff_day_query)[0][0]
-diff_day = client.execute(diff_day_query)[0][1]
+diff_day = client.execute(diff_day_query)[0][0]
 
 query_len = 0
 
-for i in range(1, diff_day + 1):
+for i in range(0, diff_day + 1):
 
 
     print(f"Итерация: {i}. Обрабатываются заказы: за {i} день.")
@@ -56,7 +54,7 @@ for i in range(1, diff_day + 1):
             , sum(amount) amount
             , calc_date
         from {src_table}
-        where dt >= toDateTime('{max_day}') - interval {i} day and dt < toDateTime('{max_day}') - interval {i -1} day
+        where dt >= today() - interval {i} day and dt < today() - interval {i - 1} day
         -- у тебя ещё будут затрагиваться операции из первого часа следующего дня
         -- лучше перепиши через уровнения 
 
@@ -65,6 +63,9 @@ for i in range(1, diff_day + 1):
 
         -- норм, но лучше используй что-то из этого набора: select toStartOfDay(now()), toDate(now()), today()
         -- и кстати, сегодняшний день у тебя не предусмотрен
+        
+        -- предусмотрен у меня на первой итерации dt меньше завтрашней даты должно быть и больше или равно 00:00 сегодняшний
+        --, в данный момент в calc нет данных за сегодня
         
         group by prodtype_id, dt_h, dt_h_msk, employee_id, office_id, calc_date
         """
