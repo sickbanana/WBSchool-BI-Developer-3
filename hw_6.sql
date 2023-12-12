@@ -12,26 +12,27 @@ select office_id
     , dictGet('dictionary.BranchOffice','office_name', toUInt64(office_id)) office_name
     , uniq(employee_id) qty
 from history.calc
-where dt >= now() - interval 10 day
+where dt >= toStartOfDay(now()) - interval 10 day
 group by office_id
 
 select ProdTypePart_name
 from dict_prodType
 group by ProdTypePart_name
 
---10 самых оплачиваемых операций
+--10 самых оплачиваемых операций по сборке
     -- в таблице помимо выплат присутствуют штрафы
     -- штраф как-то не особо может быть оплачиваемым, скорее взымаемым
 select prodtype_id
     , dictGet('dictionary.ProdType','prodtype_name', prodtype_id) prodtype_name
     , round(avg(amount)) avg_amount
 from history.calc
-where dictGet('dictionary.ProdType','ProdTypePart_id', prodtype_id) != 0
+where dictGet('dictionary.ProdType','ProdTypePart_id', prodtype_id) = 1
+    and prodtype_id between 1001 and 1204
+    or prodtype_id = 40006
     -- не обязательно, можешь посмотреть статусы 4001-4071
     -- лучше выбери определеные статусы сборки и по ним смотри
 group by prodtype_id
 order by avg_amount desc
-limit 10
 
 --10 самых частых операций
 select prodtype_id
@@ -101,7 +102,7 @@ select office_id
      , sum(amount) amount
      , calc_date
 from history.calc
-where dt between now() - interval 2 day and now() - interval 1 day
+where dt >= toStartOfDay(now()) - interval 2 day and dt < toStartOfDay(now()) - interval 1 day
 group by prodtype_id, dt_h, dt_h_msk, employee_id, office_id, calc_date
 
 -- 05. Сделать даг на инкрементальное пополнение витрины.
