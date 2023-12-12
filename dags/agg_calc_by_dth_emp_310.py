@@ -58,7 +58,7 @@ def main():
         , sum(amount) amount 
         , calc_date
     from {src_table}
-    where dt_h_msk >= (select max(dt_h_msk) from {dst_table})
+    where dt_h_msk >= (select max(dt_h_msk) from {dst_table} final)
     -- final забыл
     -- зачем нам final если есть max? 
     -- нужно последнее состояние таблицы и при работе с replacing лучше всегда укзывать final
