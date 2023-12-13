@@ -47,6 +47,8 @@ from
     , any(is_in) over (partition by employee_id order by dt rows between 1 preceding and 1 preceding) is_in_prev
     from history.turniket
 )
+# вообще такое НЕЛЬЗЯ делать - по всей таблице считать оконку!
+# обязательно нужен фильтр какой то
 where date_diff('hour', dt_prev, dt) > 7
     and is_in = 1
 
