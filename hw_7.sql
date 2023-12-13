@@ -65,5 +65,7 @@ asof join temp_smena t
 on a.employee_id = t.employee_id and dt_h - interval 3 hour >= dt_smena_start
 group by employee_id, office_id, dt_smena_start, dt_smena_end, sm_type, prodtype_id
 
+# важный момент - где данных больше в agg.calc_by_dth_emp_310 или в temp_smena?
+
 
 drop table if exists temp_smena
