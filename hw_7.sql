@@ -46,6 +46,8 @@ from
     , any(dt) over (partition by employee_id order by dt rows between 1 preceding and 1 preceding) dt_prev
     , any(is_in) over (partition by employee_id order by dt rows between 1 preceding and 1 preceding) is_in_prev
     from history.turniket
+    -- типо такого?
+    where dt >= now() - interval 30 day
 )
 # вообще такое НЕЛЬЗЯ делать - по всей таблице считать оконку!
 # обязательно нужен фильтр какой то
