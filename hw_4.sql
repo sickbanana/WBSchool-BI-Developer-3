@@ -158,14 +158,15 @@ order by dt_smena_start
 -- Сделать запрос для расчета смен. Применить оконную функцию.
 select employee_id
     , dt dt_smena_start
-    , if(any(dt_prev) over (rows between 1 following and 1 following) as dt_next = '1970-01-01 00:00:00'
+    , if(any(dt_prev) over (rows between 1 following and 1 following) as dt_next = '1970-01-01 00:00:00' or is_in_prev = 1
         , dt_smena_start + interval 12 hour, dt_next) dt_smena_end
 from
 (
     select employee_id, dt, is_in
     , any(dt) over (order by dt rows between 1 preceding and 1 preceding) dt_prev
+    , any(is_in) over (order by dt rows between 1 preceding and 1 preceding) is_in_prev
     from history.turniket
-    where employee_id = 4629
+    where employee_id = 6357
 )
 where date_diff('hour', dt_prev, dt) > 7
     and is_in = 1
