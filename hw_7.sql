@@ -67,5 +67,12 @@ group by employee_id, office_id, dt_smena_start, dt_smena_end, sm_type, prodtype
 
 # важный момент - где данных больше в agg.calc_by_dth_emp_310 или в temp_smena?
 
+select count() from agg.calc_by_dth_emp_310
+--14715463
+
+select count() from temp_smena
+--8138481
+
+-- по идеи тогда у меня правильно стоит? я об этом не подумал сразу, в следующий раз учту
 
 drop table if exists temp_smena
