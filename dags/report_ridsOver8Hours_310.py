@@ -114,7 +114,8 @@ def main():
                 and dt_last < dt_max_time - interval 8 hour
         """
 
-    client.execute(insert_query)
+        client.execute(insert_query)
+
     print(f"Добавлены новые данные")
 
 task1 = PythonOperator(
