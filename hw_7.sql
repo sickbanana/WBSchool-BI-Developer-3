@@ -84,3 +84,8 @@ drop table if exists temp_smena
 -- Слой 3. Топ-1000 самых отстающих заказов.
 -- Дать нормальные имена колонкам. Колонки настраиваются в разделе Dataset.
 -- Добавить фильтр по офисам.
+
+alter table report.orders_not_in_assembly_310 delete
+where dt_last >= (select max(dt_last)
+    from report.orders_not_in_assembly_310 final
+    where is_deleted = 0) - interval 24 hour
