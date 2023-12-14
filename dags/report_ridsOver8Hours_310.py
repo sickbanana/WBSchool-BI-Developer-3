@@ -72,24 +72,47 @@ def main():
     client.execute(delete_query)
     print(f"Добавлены данные с флагом is_deleted = 1")
 
-    insert_query = f"""
-        insert into {dst_table}
-        with
+    quantiles_query = f"""
+        select qvan4
+        from
         (
-            select max(dt) from {src_table}
-        ) as dt_max_time
-        select rid_hash
-            , argMax(src_office_id, dt) src_office_id
-            , argMax(dst_office_id, dt) dst_office_id
-            , max(dt) dt_last
-            , 0 is_deleted
-        from {src_table}
-        where dt >= (select max(dt_last) from {dst_table} where is_deleted = 0) - interval 10 hour
-            and rid_hash not in (select rid_hash from {dst_table} final where is_deleted = 0)
-        group by rid_hash
-        having argMax(src, dt) = 'assembly_task'
-            and dt_last < dt_max_time - interval 8 hour
-    """
+            select arrayPushFront(qvan3, min(rid_hash)) qvan4
+                , length(qvan4) qty
+                , quantiles(0.2, 0.4, 0.6, 0.8)(rid_hash) qvan
+                , arrayMap(x -> toUInt64(x), qvan) qvan2
+                , arrayPushBack(qvan2, max(rid_hash)) qvan3
+            from {src_table}
+            where dt >= (select max(dt_last) from {dst_table} final where is_deleted = 0) - interval 24 hour
+        )
+        """
+
+    quantile_result = client.execute(quantiles_query)[0][0]
+
+    for i in range(0, len(quantile_result) - 1):
+        rid_start = int(quantile_result[i])
+        rid_end = int(quantile_result[i + 1])
+
+        print(f"Итерация: {i+1}. Обрабатываются заказы: {rid_start} - {rid_end}.")
+
+        insert_query = f"""
+            insert into {dst_table}
+            with
+            (
+                select max(dt) from {src_table}
+            ) as dt_max_time
+            select rid_hash
+                , argMax(src_office_id, dt) src_office_id
+                , argMax(dst_office_id, dt) dst_office_id
+                , max(dt) dt_last
+                , 0 is_deleted
+            from {src_table}
+            where dt >= (select max(dt_last) from {dst_table} final where is_deleted = 0) - interval 24 hour
+                and rid_hash between {rid_start} and {rid_end}
+                and rid_hash not in (select rid_hash from {dst_table} final where is_deleted = 0)
+            group by rid_hash
+            having argMax(src, dt) = 'assembly_task'
+                and dt_last < dt_max_time - interval 8 hour
+        """
 
     client.execute(insert_query)
     print(f"Добавлены новые данные")
