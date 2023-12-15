@@ -89,3 +89,24 @@ alter table report.orders_not_in_assembly_310 delete
 where dt_last >= (select max(dt_last)
     from report.orders_not_in_assembly_310 final
     where is_deleted = 0) - interval 24 hour
+
+-- Слой 1. График Кол-во по дням и по офисам.
+select src_office_id
+    , dictGet('dictionary.BranchOffice','office_name', toUInt64(src_office_id)) src_office_name
+    , uniq(rid_hash) qty_rids
+    , toDate(dt_last) dt_date
+from report.orders_not_in_assembly_310 final
+where is_deleted = 0
+group by src_office_id, dt_date
+order by src_office_id, dt_date
+
+-- Слой 3. Топ-1000 самых отстающих заказов.
+select src_office_id
+    , dictGet('dictionary.BranchOffice','office_name', toUInt64(src_office_id)) src_office_name
+    , toUInt32(rid_hash) rid_hash
+    , dst_office_id
+    , dictGet('dictionary.BranchOffice','office_name', toUInt64(dst_office_id)) dst_office_name
+from report.orders_not_in_assembly final
+where is_deleted = 0
+order by dateDiff('hour', dt_last, now()) desc
+limit 1000
