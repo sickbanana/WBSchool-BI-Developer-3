@@ -47,6 +47,8 @@ def main():
     delete_query = """
         drop table if exists {tmp_table}
             """
+# a  где собственно client.execute ??
+# рассмотри вариант сразу писать запросы в client.execute, а не через объявление переменных
 
     print(f'Временная таблица {tmp_table} удаленна')
 
