@@ -44,9 +44,8 @@ dst_table = 'report.employee_smena_310'
 
 
 def main():
-    delete_query = """
-        drop table if exists {tmp_table}
-            """
+
+    client.execute(f"""drop table if exists {tmp_table}""")
 # a  где собственно client.execute ??
 # рассмотри вариант сразу писать запросы в client.execute, а не через объявление переменных
 
