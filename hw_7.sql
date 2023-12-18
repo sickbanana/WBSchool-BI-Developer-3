@@ -144,6 +144,7 @@ group by dt_smena_start, dt_smena_end, ProdTypePart_name, employee_id
 order by dt_smena_start, dt_smena_end, ProdTypePart_name, employee_id
 
 
+
 -- 07. Перенести отчет Заказы 8 часов в Superset.
 -- Слой 1. График Кол-во по дням и по офисам.
 -- Слой 2. Таблица Кол-во по дням и по офисам.
