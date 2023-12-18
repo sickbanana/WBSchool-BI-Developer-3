@@ -46,7 +46,6 @@ from
     , any(dt) over (partition by employee_id order by dt rows between 1 preceding and 1 preceding) dt_prev
     , any(is_in) over (partition by employee_id order by dt rows between 1 preceding and 1 preceding) is_in_prev
     from history.turniket
-    -- типо такого?
     where dt >= now() - interval 30 day
 )
 # вообще такое НЕЛЬЗЯ делать - по всей таблице считать оконку!
@@ -76,6 +75,56 @@ select count() from temp_smena
 -- по идеи тогда у меня правильно стоит? я об этом не подумал сразу, в следующий раз учту
 
 drop table if exists temp_smena
+
+-- 03.
+-- Написать даг на инкрементальное пополенение витрины.
+insert into report.employee_smena_310
+select employee_id, office_id
+    , toDate(dt_smena_start) dt_date
+    , dt_smena_start, dt_smena_end, sm_type, prodtype_id
+    , sum(qty_oper) qty_oper
+    , sum(amount) amount
+from (
+    select office_id, employee_id, dt_h, prodtype_id, qty_oper, amount
+    from agg.calc_by_dth_emp_310
+    where dt_h >= (select max(dt_smena_start) from {dst_table} final) - - interval 3 day + interval 3 hour
+) a
+asof join {tmp_table} t
+on a.employee_id = t.employee_id and dt_h - interval 3 hour >= dt_smena_start
+group by employee_id, office_id, dt_smena_start, dt_smena_end, sm_type, prodtype_id
+
+
+-- 04.
+-- Написать запрос для будущего дашборда.
+-- Выработка в контексте каждой даты и офиса за последние 10 дней.
+-- Используем таблицу агрегат.
+select office_id
+    , dictGet('dictionary.BranchOffice','office_name', toUInt64(office_id)) office_name
+    , dt_date
+    , sum(qty_oper) production
+from report.employee_smena_310
+where dt_date >= today() - interval 10 day
+group by office_id, dt_date
+order by office_id, dt_date
+
+-- 05.
+-- Написать запрос для будущего дашборда.
+-- Выработка в контексте каждой даты, офиса и участка работ за последние 10 дней.
+-- Используем таблицу агрегат.
+select office_id
+    , dictGet('dictionary.BranchOffice','office_name', toUInt64(office_id)) office_name
+    , dt_date
+    , sum(qty_oper) production
+from report.employee_smena_310 final
+where dt_date >= today() - interval 10 day
+group by office_id, dt_date
+order by office_id, dt_date
+
+-- 06.
+-- Написать запрос для будущего дашборда.
+-- За последние 15 дней Вывести данные Смена начало, Смена конец, Участок работ, Сотрудник, Сумма выработки,
+--   для 100 сотрудников, у которых самая большая выработка(за последние 10 дней), и у которых было более 2х участков работ(за последние 10 дней).
+-- Используем свою витрину.
 
 
 -- 07. Перенести отчет Заказы 8 часов в Superset.
