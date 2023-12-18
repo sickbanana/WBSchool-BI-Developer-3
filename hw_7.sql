@@ -102,7 +102,7 @@ select office_id
     , dictGet('dictionary.BranchOffice','office_name', toUInt64(office_id)) office_name
     , dt_date
     , sum(qty_oper) production
-from report.employee_smena_310
+from report.employee_smena_310 final
 where dt_date >= today() - interval 10 day
 group by dt_date, office_id
 order by dt_date, office_id
@@ -129,11 +129,11 @@ select dt_smena_start, dt_smena_end
     , dictGet('dictionary.ProdType','ProdTypePart_name', prodtype_id) ProdTypePart_name
     , employee_id
     , sum(qty_oper) qty_oper
-from report.employee_smena_310
+from report.employee_smena_310 final
 where dt_date >= today() - interval 15 day and employee_id in
 (
     select employee_id
-    from report.employee_smena_310
+    from report.employee_smena_310 final
     where dt_date >= today() - interval 10 day
     group by employee_id
     having uniq(dictGet('dictionary.ProdType','ProdTypePart_name', prodtype_id)) >= 2
