@@ -142,7 +142,7 @@ where dt_date >= today() - interval 15 day and employee_id in
 )
 group by dt_smena_start, dt_smena_end, ProdTypePart_name, employee_id
 order by dt_smena_start, dt_smena_end, ProdTypePart_name, employee_id
-# uniq(dictGet('dictionary.ProdType','ProdTypePart_name', prodtype_id)) - а зачем тут обращение к словарю? 
+
 
 
 -- 07. Перенести отчет Заказы 8 часов в Superset.
