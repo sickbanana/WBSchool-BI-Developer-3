@@ -104,27 +104,44 @@ select office_id
     , sum(qty_oper) production
 from report.employee_smena_310
 where dt_date >= today() - interval 10 day
-group by office_id, dt_date
-order by office_id, dt_date
+group by dt_date, office_id
+order by dt_date, office_id
 
 -- 05.
 -- Написать запрос для будущего дашборда.
 -- Выработка в контексте каждой даты, офиса и участка работ за последние 10 дней.
 -- Используем таблицу агрегат.
-select office_id
+select dt_date, office_id
     , dictGet('dictionary.BranchOffice','office_name', toUInt64(office_id)) office_name
-    , dt_date
+    , dictGet('dictionary.ProdType','ProdTypePart_name', prodtype_id) ProdTypePart_name
     , sum(qty_oper) production
 from report.employee_smena_310 final
 where dt_date >= today() - interval 10 day
-group by office_id, dt_date
-order by office_id, dt_date
+group by dt_date, office_id, ProdTypePart_name
+order by dt_date, office_id, ProdTypePart_name
 
 -- 06.
 -- Написать запрос для будущего дашборда.
 -- За последние 15 дней Вывести данные Смена начало, Смена конец, Участок работ, Сотрудник, Сумма выработки,
 --   для 100 сотрудников, у которых самая большая выработка(за последние 10 дней), и у которых было более 2х участков работ(за последние 10 дней).
 -- Используем свою витрину.
+select dt_smena_start, dt_smena_end
+    , dictGet('dictionary.ProdType','ProdTypePart_name', prodtype_id) ProdTypePart_name
+    , employee_id
+    , sum(qty_oper) qty_oper
+from report.employee_smena_310
+where dt_date >= today() - interval 15 day and employee_id in
+(
+    select employee_id
+    from report.employee_smena_310
+    where dt_date >= today() - interval 10 day
+    group by employee_id
+    having uniq(dictGet('dictionary.ProdType','ProdTypePart_name', prodtype_id)) >= 2
+    order by sum(qty_oper) desc
+    limit 100
+)
+group by dt_smena_start, dt_smena_end, ProdTypePart_name, employee_id
+order by dt_smena_start, dt_smena_end, ProdTypePart_name, employee_id
 
 
 -- 07. Перенести отчет Заказы 8 часов в Superset.
