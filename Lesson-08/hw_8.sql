@@ -12,5 +12,6 @@
 select nm_id, vol
 from report.volume_by_nm
 where nm_id = 102137348
+она replacing
 
 --2475
