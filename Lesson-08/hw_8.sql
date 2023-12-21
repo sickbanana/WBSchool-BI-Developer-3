@@ -10,7 +10,7 @@
 --   в) разные chrt_id для одной нмки
 --   г) объем для одной номенклатуры из витрины с объемами
 select nm_id, vol
-from report.volume_by_nm
+from report.volume_by_nm final
 where nm_id = 102137348
 она replacing
 
