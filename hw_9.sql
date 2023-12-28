@@ -57,7 +57,7 @@ select toInt64(item_id) shk_id
     , argMax(wbsticker_id, dt) wbsticker_id
 from history.WBSticker
 where dt >= toStartOfDay(now()) - interval 10 day
-    and shk_id in (select shk_id from tmp.table9_310_1)
+    and item_id in (select toUInt64(shk_id) from tmp.table9_310_1)
 group by shk_id
 
 -- 03. Добавить колонку объем в литрах. Округлить до 2х знаков.
@@ -92,7 +92,7 @@ select t1.rid_hash rid_hash
 from tmp.table9_310_1 t1
 left any join tmp.table9_310_2 t2
     on t1.shk_id = t2.shk_id
-join tmp.table9_310_3 t3
+semi join tmp.table9_310_3 t3
     on t1.rid_hash = t3.rid_hash
 left any join tmp.table9_310_4 t4
     on t1.shk_id = t4.shk_id
