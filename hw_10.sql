@@ -59,6 +59,8 @@ from tmp.table10_3;
 --  dt_mx_next, mx_name_next
 
 -- 01. Номер заказа, который предшествовал попаданию на брак.
+
+     -- лучше убрать максимальное время, временнами данные не совсем правильные прилетают
 drop table if exists tmp.table10_4_310;
 SET max_execution_time = 15000000
 create table tmp.table10_4_310 ENGINE = MergeTree order by (shk_id) as
@@ -70,6 +72,7 @@ where dt >= now() - interval 2 month
 group by shk_id, rid_hash
 
 -- 02. Номер заказа, который был после брака.
+     	-- такая же история как с предыдущем заданием
 drop table if exists tmp.table10_5_310;
 SET max_execution_time = 15000000
 create table tmp.table10_5_310 ENGINE = MergeTree order by (shk_id) as
