@@ -47,6 +47,9 @@ group by rid_hash
 -- 02. Добавить колонку wbsticker_id.
 -- Собрать времянку tmp.table9_4 и добавить join в конечный запрос.
 -- Глубина даты 10 дней, этого должно хватить для поиска.
+    
+    -- в фильтрации лучше работать с item_id, а не с преобразованным shk_id.
+    -- в таблице WBSticker сортировка идёт по item_id
 drop table if exists tmp.table9_310_4;
 SET max_execution_time = 15000000
 create table tmp.table9_310_4 ENGINE = MergeTree order by (shk_id) as
@@ -70,7 +73,7 @@ select nm_id
 from report.volume_by_nm final
 where nm_id in (select toUInt64(nm_id) from tmp.table9_310_3)
 
-
+    -- не надо inner join, достаточно найти первое совпадение и выйти из join секции
 drop table if exists tmp.table9_310_main;
 SET max_execution_time = 15000000
 create table tmp.table9_310_main ENGINE = MergeTree order by (rid_hash) as
