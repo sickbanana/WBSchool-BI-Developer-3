@@ -65,11 +65,10 @@ drop table if exists tmp.table10_4_310;
 SET max_execution_time = 15000000
 create table tmp.table10_4_310 ENGINE = MergeTree order by (shk_id) as
 select shk_id, rid_hash rid_prev
-    , max(dt) dt_rid_prev
+    , dt dt_rid_prev
 from history.sorted
 where dt >= now() - interval 2 month
       and shk_id in (select shk_id from tmp.table10_1_310)
-group by shk_id, rid_hash
 
 -- 02. Номер заказа, который был после брака.
      	-- такая же история как с предыдущем заданием
@@ -77,11 +76,10 @@ drop table if exists tmp.table10_5_310;
 SET max_execution_time = 15000000
 create table tmp.table10_5_310 ENGINE = MergeTree order by (shk_id) as
 select shk_id, rid_hash rid_next
-    , max(issued_dt) dt_rid_next
+    , issued_dt dt_rid_next
 from history.assembly_task_issued
 where issued_dt >= now() - interval 1 month
       and shk_id in (select shk_id from tmp.table10_1_310)
-group by shk_id, rid_hash
 
 -- 03. Следующее событие после брака.
 -- Добавить колонку мх во времянку tmp.table10_2 и добавить эту времянку в результирующий запрос.
