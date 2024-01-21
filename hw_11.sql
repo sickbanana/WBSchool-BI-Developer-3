@@ -75,8 +75,8 @@ select rid_hash
      , dt_ocr
      , src_office_id
      , dictGet('dictionary.BranchOffice', 'office_name', src_office_id) src_office_name
-     , minIf(dt_mx, dictGet('dictionary.BranchOffice', 'type_point', toUInt64(office_id)) = 13 and office_id = src_office_id) dt_return
-     , argMinIf(mx, dt_mx, dictGet('dictionary.BranchOffice', 'type_point', toUInt64(office_id)) = 13 and office_id = src_office_id) mx_return
+     , minIf(dt_mx, office_id = src_office_id) dt_return
+     , argMinIf(mx, dt_mx, office_id = src_office_id) mx_return
      , dictGet('dictionary.StoragePlace','mx_name', mx_return) mx_return_name
      , minIf(dt_mx, state_id = 'WPU') dt_repack
      , argMinIf(mx, dt_mx, state_id = 'WPU') mx_repack
