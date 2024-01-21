@@ -31,6 +31,7 @@ select item_id shk_id, dt dt_mx, mx, state_id, employee_id
 from history.ShkOnPlace
 where dt >= now() - interval 30 day
     and item_id in (select shk_id from tmp.table11_3_310)
+    and (state_id = 'WPU' or dictGet('dictionary.BranchOffice', 'type_point', toUInt64(office_id)) = 13);
 
 drop table if exists tmp.table11_5_310;
 SET max_execution_time = 15000000

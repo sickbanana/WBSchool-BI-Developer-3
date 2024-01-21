@@ -54,6 +54,23 @@ settings index_granularity = 8192
 -- Заполнить ее за всю историю 30 дней.
 -- Квантили использовать не нужно. Достаточно выполнить весь код из 11 домашки.
 -- Здесь приложить результат запроса по Кол-ву строк в вашей витрине.
+insert into report.shk_return_310
+select src_office_id
+     , rid_hash
+     , shk_id
+     , dt_ocr
+     , minIf(dt_mx, dictGet('dictionary.BranchOffice', 'type_point', toUInt64(office_id)) = 13) dt_return
+     , minIf(dt_mx, state_id = 'WPU') dt_repack
+     , argMinIf(office_id, dt_mx, state_id = 'WPU') repack_office_id
+     , argMinIf(mx, dt_mx, state_id = 'WPU') mx_repack
+from tmp.table11_6_310
+group by rid_hash, shk_id, dt_ocr, src_office_id
+having dt_repack != 0 or dt_return != 0
+
+select count() qty
+from report.shk_return_310
+
+--1017080
 
 
 -- 04
