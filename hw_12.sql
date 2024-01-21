@@ -49,9 +49,8 @@ create table report.shk_return_310
     `repack_office_id` UInt32,
     `mx_repack` UInt64
 )
-engine = ReplacingMergeTree(rid_hash)
+engine = ReplacingMergeTree()
 order by (rid_hash, shk_id)
-partition by toStartOfWeek(dt_ocr)
 ttl toStartOfDay(dt_ocr) + toIntervalDay(30)
 settings index_granularity = 8192
 
