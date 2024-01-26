@@ -7,7 +7,7 @@ create table report.offices_over_3_points_310
     `src_office_id` DateTime,
     `shippingroute_name` String,
     `arr_point` Array(String),
-    `qty_points` Int32,
+    `qty_rid` Int32,
     `rid_hash` UInt64,
     `shk_id` Int64,
     `dt_start` DateTime,
@@ -113,24 +113,43 @@ from tmp.table_01_diplom_6_310;
 drop table if exists tmp.table_01_diplom_main_310
 SET max_execution_time = 1500000
 create table tmp.table_01_diplom_main_310 engine MergeTree() order by (src_office_id, shippingroute_name) as
-select shippingroute_name, arr4 arr_points, rid_hash, shk_id, src_office_id, dst_office_id, dt_start, dt_finish
+select shippingroute_name, arr4 arr_points, rid_hash, shk_id, src_office_id, dt_start, dt_finish
     , arraySort(groupArray((dt, office_id))) arr1
     , arrayFilter(x -> x.2 != 0, arr1) arr2 -- из-за нулевых офиссов после их удаления могут быть повторения, поэтому удаляю предварительно тоже, есть вариант присваивать не 0 а -1 тогда в функции ниже
     , arrayMap(x -> (if(arr2[x].2 != arr2[x+1].2, arr2[x].2, 0)), arrayEnumerate(arr1)) arr3
     , arrayFilter(x -> x != 0, arr3) arr4
 from tmp.table_01_diplom_6_310
-group by shippingroute_name, rid_hash, shk_id, src_office_id, dst_office_id, dt_start, dt_finish
+group by shippingroute_name, rid_hash, shk_id, src_office_id, dt_start, dt_finish
 having length(arr_points) > 3
 
 --это будет инсертиться, неуверен как тут будет работать оконка, тут же вроде нет оптимизатора в клике, если она будет считаться каждый раз заново все 50 раз
 -- , то это непотимально наверно тогда лучше переделать под массив заказов
 insert into report.offices_over_3_points_310
-select shippingroute_name, arr_points, rid_hash, shk_id, src_office_id, dst_office_id, dt_start, dt_finish
+select src_office_id, shippingroute_name, arr_points
     , count(rid_hash) over(partition by (src_office_id, shippingroute_name)) qty_rid
+    , rid_hash, shk_id, dt_start, dt_finish
+    , now() dt_load -- в питоне заменю
 from tmp.table_01_diplom_7_310
 limit 50 by shippingroute_name
 
 
 
+-- 05 Запрос к витрине для Основного отчета
+-- Колонки Основного отчета:
+/*
+ Офис оформления
+ Направление, по настройкам отгрузки.
+ Кол-во точек
+ Кол-во товаров на данном пути
+ Маршрут. Офисы, через которые проехал товар в заказе. Упорядочен по дате.
+ Краснодар - Краснодар - Электросталь - Новосибирск - Иркутск
+ */
+ -- Фильтр: Офис оформления
+ -- Фильтр: Направление
+ -- Отчет показывает Топ-100 по Кол-ву точек по убыванию и с кол-вом товара более 50 штук.
+select src_office_id, shippingroute_name, length(arr_point) qty_point, qty_rid
 
-
+from report.offices_over_3_points_310
+where qty_rid > 50
+order by qty_point
+limit 100
