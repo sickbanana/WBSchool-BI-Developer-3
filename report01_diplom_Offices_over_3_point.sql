@@ -1,8 +1,8 @@
 -- 01 Схема Витрины
 shippingroute_name, [offices_name_points] arr_points, qty_points x 1, rid_hash, src_office_id, shk_id, dt_start, dt_finish x 50
 
-drop table if exists offices_over_3_points_310
-create table offices_over_3_points_310
+drop table if exists report.offices_over_3_points_310
+create table report.offices_over_3_points_310
 (
     `src_office_id` DateTime,
     `shippingroute_name` String,
@@ -57,6 +57,9 @@ where dt >= now() - interval 30 day
     and rid_hash in (select rid_hash from tmp.table_01_diplom_1_310)
 group by rid_hash, shk_id
 
+select count()
+from tmp.table_01_diplom_2_310
+
 drop table if exists tmp.table_01_diplom_3_310
 SET max_execution_time = 1500000
 create table tmp.table_01_diplom_3_310 engine MergeTree() order by (rid_hash) as
@@ -66,20 +69,68 @@ from history.assembly_task_issued
 where issued_dt >= now() - interval 30 day
     and rid_hash in (select rid_hash from tmp.table_01_diplom_2_310)
 
-drop table if exists tmp.table_01_diplom_3_310
+select count()
+from tmp.table_01_diplom_3_310
+
+drop table if exists tmp.table_01_diplom_4_310
 SET max_execution_time = 1500000
-create table tmp.table_01_diplom_4_310 engine MergeTree() order by (rid_hash) as
-select rid_hash, src_office_id, dst_office_id, shk_id, dt_start, dt_finish
+create table tmp.table_01_diplom_4_310 engine MergeTree() order by (shk_id) as
+select t1.rid_hash rid_hash, src_office_id, dst_office_id, shk_id, dt_start, dt_finish
+     , dictGet('dictionary.ShippingRoute','shippingroute_name', shippingroute_id) shippingroute_name
 from tmp.table_01_diplom_1_310 t1
-join tmp.table_01_diplom_2_310 t2
+left join tmp.table_01_diplom_2_310 t2
 on t1.rid_hash = t2.rid_hash
 semi join tmp.table_01_diplom_3_310 t3
 on t1.rid_hash = t3.rid_hash
 
-drop table if exists tmp.table_01_diplom_3_310
+select count()
+from tmp.table_01_diplom_4_310
+
+drop table if exists tmp.table_01_diplom_5_310
 SET max_execution_time = 1500000
-create table tmp.table2_5 engine MergeTree() order by (rid_hash) as
-select item_id, dt, mx, mx office_id
+create table tmp.table_01_diplom_5_310 engine MergeTree() order by (shk_id) as
+select item_id shk_id, dt, mx
+    , dictGet('dictionary.StoragePlace','office_id', toUInt64(mx)) office_id
 from history.ShkOnPlace
-where ..
+where shk_id in (select shk_id from tmp.table_01_diplom_4_310)
+
+select count()
+from tmp.table_01_diplom_5_310
+
+drop table if exists tmp.table_01_diplom_6_310
+SET max_execution_time = 1500000
+create table tmp.table_01_diplom_6_310 engine MergeTree() order by (rid_hash) as
+select shippingroute_name, rid_hash, t5.shk_id shk_id, src_office_id, dst_office_id, dt_start, dt_finish, office_id, dt
+from tmp.table_01_diplom_5_310 t5
+asof join tmp.table_01_diplom_4_310 t4
+on t5.shk_id = t4.shk_id and dt > dt_start
+where dt < dt_finish
+    and office_id != src_office_id or office_id != dst_office_id
+
+select count()
+from tmp.table_01_diplom_6_310;
+
+drop table if exists tmp.table_01_diplom_main_310
+SET max_execution_time = 1500000
+create table tmp.table_01_diplom_main_310 engine MergeTree() order by (src_office_id, shippingroute_name) as
+select shippingroute_name, arr4 arr_points, rid_hash, shk_id, src_office_id, dst_office_id, dt_start, dt_finish
+    , arraySort(groupArray((dt, office_id))) arr1
+    , arrayFilter(x -> x.2 != 0, arr1) arr2
+    , arrayMap(x -> (if(arr2[x].2 != arr2[x+1].2, arr2[x].2, 0)), arrayEnumerate(arr1)) arr3
+    , arrayFilter(x -> x != 0, arr3) arr4
+from tmp.table_01_diplom_6_310
+group by shippingroute_name, rid_hash, shk_id, src_office_id, dst_office_id, dt_start, dt_finish
+having length(arr_points) > 3
+
+--это будет инсертиться, неуверен как тут будет работать оконка, тут же вроде нет оптимизатора в клике, если она будет считаться каждый раз заново все 50 раз
+-- , то это непотимально наверно тогда лучше переделать под массив заказов
+insert into report.offices_over_3_points_310
+select shippingroute_name, arr_points, rid_hash, shk_id, src_office_id, dst_office_id, dt_start, dt_finish
+    , count(rid_hash) over(partition by (src_office_id, shippingroute_name)) qty_rid
+from tmp.table_01_diplom_7_310
+limit 50 by shippingroute_name
+
+
+
+
 
