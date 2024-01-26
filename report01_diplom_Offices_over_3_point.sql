@@ -4,7 +4,7 @@ shippingroute_name, [offices_name_points] arr_points, qty_points x 1, rid_hash, 
 drop table if exists report.offices_over_3_points_310
 create table report.offices_over_3_points_310
 (
-    `src_office_id` DateTime,
+    `src_office_id` UInt32,
     `shippingroute_name` String,
     `arr_point` Array(String),
     `qty_rid` Int32,
@@ -129,7 +129,7 @@ select src_office_id, shippingroute_name, arr_points
     , count(rid_hash) over(partition by (src_office_id, shippingroute_name)) qty_rid
     , rid_hash, shk_id, dt_start, dt_finish
     , now() dt_load -- в питоне заменю
-from tmp.table_01_diplom_7_310
+from tmp.table_01_diplom_main_310
 limit 50 by shippingroute_name
 
 
@@ -147,8 +147,11 @@ limit 50 by shippingroute_name
  -- Фильтр: Офис оформления
  -- Фильтр: Направление
  -- Отчет показывает Топ-100 по Кол-ву точек по убыванию и с кол-вом товара более 50 штук.
-select src_office_id, shippingroute_name, length(arr_point) qty_point, qty_rid
-
+select dictGet('dictionary.BranchOffice','office_name', toUInt64(src_office_id)) src_office_name
+    , shippingroute_name, length(arr_point) qty_point, qty_rid
+    , replaceRegexpAll(
+        toString(arrayMap(x->(dictGet('dictionary.BranchOffice','office_name', toUInt64(x))), arr_point)),
+        '[\[\]\']', '') points -- если ',' заменить на '-' , то получается путаница, потому что в названии офиссов бывают '-'
 from report.offices_over_3_points_310
 where qty_rid > 50
 order by qty_point
