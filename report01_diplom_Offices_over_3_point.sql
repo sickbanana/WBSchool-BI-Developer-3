@@ -115,7 +115,7 @@ SET max_execution_time = 1500000
 create table tmp.table_01_diplom_main_310 engine MergeTree() order by (src_office_id, shippingroute_name) as
 select shippingroute_name, arr4 arr_points, rid_hash, shk_id, src_office_id, dst_office_id, dt_start, dt_finish
     , arraySort(groupArray((dt, office_id))) arr1
-    , arrayFilter(x -> x.2 != 0, arr1) arr2
+    , arrayFilter(x -> x.2 != 0, arr1) arr2 -- из-за нулевых офиссов после их удаления могут быть повторения, поэтому удаляю предварительно тоже, есть вариант присваивать не 0 а -1 тогда в функции ниже
     , arrayMap(x -> (if(arr2[x].2 != arr2[x+1].2, arr2[x].2, 0)), arrayEnumerate(arr1)) arr3
     , arrayFilter(x -> x != 0, arr3) arr4
 from tmp.table_01_diplom_6_310
