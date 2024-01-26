@@ -47,3 +47,39 @@ from history.order_completed
 where dt >= now() - interval 5 day
 group by rid_hash
 limit 10000
+
+drop table if exists tmp.table_01_diplom_2_310
+SET max_execution_time = 1500000
+create table tmp.table_01_diplom_2_310 engine MergeTree() order by (rid_hash) as
+select rid_hash, shk_id, max(dt) dt_start
+from history.assembled
+where dt >= now() - interval 30 day
+    and rid_hash in (select rid_hash from tmp.table_01_diplom_1_310)
+group by rid_hash, shk_id
+
+drop table if exists tmp.table_01_diplom_3_310
+SET max_execution_time = 1500000
+create table tmp.table_01_diplom_3_310 engine MergeTree() order by (rid_hash) as
+select rid_hash, src_office_id, dst_office_id
+    , dictGet('dictionary.OutfitAssemblySettings','shippingroute_id', (toUInt64(src_office_id), toUInt64(dst_office_id))) shippingroute_id
+from history.assembly_task_issued
+where issued_dt >= now() - interval 30 day
+    and rid_hash in (select rid_hash from tmp.table_01_diplom_2_310)
+
+drop table if exists tmp.table_01_diplom_3_310
+SET max_execution_time = 1500000
+create table tmp.table_01_diplom_4_310 engine MergeTree() order by (rid_hash) as
+select rid_hash, src_office_id, dst_office_id, shk_id, dt_start, dt_finish
+from tmp.table_01_diplom_1_310 t1
+join tmp.table_01_diplom_2_310 t2
+on t1.rid_hash = t2.rid_hash
+semi join tmp.table_01_diplom_3_310 t3
+on t1.rid_hash = t3.rid_hash
+
+drop table if exists tmp.table_01_diplom_3_310
+SET max_execution_time = 1500000
+create table tmp.table2_5 engine MergeTree() order by (rid_hash) as
+select item_id, dt, mx, mx office_id
+from history.ShkOnPlace
+where ..
+
