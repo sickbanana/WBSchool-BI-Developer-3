@@ -156,3 +156,29 @@ from report.offices_over_3_points_310
 where qty_rid > 50
 order by qty_point
 limit 100
+
+
+
+-- 06 Запрос к витрине для Детализации
+-- Колонки Детализация:
+/*
+ Офис оформления
+ Направление
+ Маршрут
+ Дата Оформлен
+ Номер заказа
+ Номер товара ШК
+ Дата Доставлен
+ */
+ -- Фильтр: Офис оформления.
+ -- Фильтр: Направление.
+ -- Детализация показывает не более 50 строк на одно Маршрут. src_office_id + shippingroute_name
+select dictGet('dictionary.BranchOffice','office_name', toUInt64(src_office_id)) src_office_name
+    , shippingroute_name
+    , replaceRegexpAll(
+        toString(arrayMap(x->(dictGet('dictionary.BranchOffice','office_name', toUInt64(x))), arr_point)),
+        '[\[\]\']', '') points
+    , dt_start, rid_hash, shk_id, dt_finish
+from report.offices_over_3_points_310
+order by src_office_id, shippingroute_name
+limit 50 by src_office_id, shippingroute_name
