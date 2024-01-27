@@ -108,7 +108,8 @@ from tmp.table_01_diplom_5_310 t5
 asof join tmp.table_01_diplom_4_310 t4
 on t5.shk_id = t4.shk_id and dt > dt_start
 where dt < dt_finish
-    and office_id != src_office_id or office_id != dst_office_id
+    and office_id != src_office_id
+    and office_id != dst_office_id
 
 select count()
 from tmp.table_01_diplom_6_310;
@@ -131,11 +132,20 @@ having length(arr_points) > 3
 -- 1. по оконке наверное норм.
 -- 2. У нас по условие ТЗ нужно чтобы на маршруте было более 50 заказов. Думаю надо фильтр сделать на qty_rid.
 insert into report.offices_over_3_points_310
-select src_office_id, shippingroute_name, arr_points
-    , count(rid_hash) over(partition by (src_office_id, shippingroute_name)) qty_rid
-    , rid_hash, shk_id, dt_start, dt_finish
-    , now() dt_load -- в питоне заменю
-from tmp.table_01_diplom_main_310
+select src_office_id, shippingroute_name, arr_points , qty_rid, rid_hash, shk_id, dt_start, dt_finish, now() dt_load -- в питоне заменю
+from
+(
+    select src_office_id
+      , shippingroute_name
+      , arr_points
+      , count(rid_hash) over (partition by (src_office_id, shippingroute_name)) qty_rid
+      , rid_hash
+      , shk_id
+      , dt_start
+      , dt_finish
+    from tmp.table_01_diplom_main_310
+)
+where qty_rid > 50
 limit 50 by shippingroute_name
 
 
@@ -162,8 +172,7 @@ select dictGet('dictionary.BranchOffice','office_name', toUInt64(src_office_id))
         toString(arrayMap(x->(dictGet('dictionary.BranchOffice','office_name', toUInt64(x))), arr_point)),
         '[\[\]\']', '') points -- если ',' заменить на '-' , то получается путаница, потому что в названии офиссов бывают '-'
 from report.offices_over_3_points_310
-where dt_load >= toStartOfDay(now())
-      and qty_rid > 50
+where dt_load >= now() - interval 1 day
 order by qty_point
 limit 100
 
@@ -190,6 +199,6 @@ select dictGet('dictionary.BranchOffice','office_name', toUInt64(src_office_id))
         '[\[\]\']', '') points
     , dt_start, rid_hash, shk_id, dt_finish
 from report.offices_over_3_points_310
-where dt_load >= toStartOfDay(now())
+where dt_load >= now() - interval 1 day
 order by src_office_id, shippingroute_name
 limit 50 by src_office_id, shippingroute_name
