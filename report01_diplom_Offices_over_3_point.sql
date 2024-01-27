@@ -97,6 +97,9 @@ where shk_id in (select shk_id from tmp.table_01_diplom_4_310)
 select count()
 from tmp.table_01_diplom_5_310
 
+-- and office_id != src_office_id or office_id != dst_office_id
+-- здесь or очень коварен в использовании. его нужно скобками оборачивать.
+-- и не вижу смысла его использовать. вроде как везде and подходит.
 drop table if exists tmp.table_01_diplom_6_310
 SET max_execution_time = 1500000
 create table tmp.table_01_diplom_6_310 engine MergeTree() order by (rid_hash) as
@@ -124,6 +127,9 @@ having length(arr_points) > 3
 
 --это будет инсертиться, неуверен как тут будет работать оконка, тут же вроде нет оптимизатора в клике, если она будет считаться каждый раз заново все 50 раз
 -- , то это непотимально наверно тогда лучше переделать под массив заказов
+
+-- 1. по оконке наверное норм.
+-- 2. У нас по условие ТЗ нужно чтобы на маршруте было более 50 заказов. Думаю надо фильтр сделать на qty_rid.
 insert into report.offices_over_3_points_310
 select src_office_id, shippingroute_name, arr_points
     , count(rid_hash) over(partition by (src_office_id, shippingroute_name)) qty_rid
@@ -147,6 +153,9 @@ limit 50 by shippingroute_name
  -- Фильтр: Офис оформления
  -- Фильтр: Направление
  -- Отчет показывает Топ-100 по Кол-ву точек по убыванию и с кол-вом товара более 50 штук.
+
+-- Ты в даге каждый раз загружуаешь новую пачку данных. Старая пачка уже не актуальна.
+-- Нужно добавить фильтр для выбора последней актуальной пачки.
 select dictGet('dictionary.BranchOffice','office_name', toUInt64(src_office_id)) src_office_name
     , shippingroute_name, length(arr_point) qty_point, qty_rid
     , replaceRegexpAll(
