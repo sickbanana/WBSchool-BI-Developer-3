@@ -78,7 +78,7 @@ create table tmp.table_01_diplom_4_310 engine MergeTree() order by (shk_id) as
 select t1.rid_hash rid_hash, src_office_id, dst_office_id, shk_id, dt_start, dt_finish
      , dictGet('dictionary.ShippingRoute','shippingroute_name', shippingroute_id) shippingroute_name
 from tmp.table_01_diplom_1_310 t1
-left join tmp.table_01_diplom_2_310 t2
+left join tmp.table_01_diplom_2_310 t2 -- если ШК не найден, то смысла делать left join нет. нам не нужны строки без ШК, надо их отбрасывать. semi.
 on t1.rid_hash = t2.rid_hash
 semi join tmp.table_01_diplom_3_310 t3
 on t1.rid_hash = t3.rid_hash
@@ -97,8 +97,11 @@ where shk_id in (select shk_id from tmp.table_01_diplom_4_310)
 select count()
 from tmp.table_01_diplom_5_310
 
+-- and office_id != src_office_id or office_id != dst_office_id
+-- здесь or очень коварен в использовании. его нужно скобками оборачивать.
+-- и не вижу смысла его использовать. вроде как везде and подходит.
 drop table if exists tmp.table_01_diplom_6_310
-SET max_execution_time = 1500000
+SET max_execution_time = 150000    
 create table tmp.table_01_diplom_6_310 engine MergeTree() order by (rid_hash) as
 select shippingroute_name, rid_hash, t5.shk_id shk_id, src_office_id, dst_office_id, dt_start, dt_finish, office_id, dt
 from tmp.table_01_diplom_5_310 t5
@@ -124,6 +127,9 @@ having length(arr_points) > 3
 
 --это будет инсертиться, неуверен как тут будет работать оконка, тут же вроде нет оптимизатора в клике, если она будет считаться каждый раз заново все 50 раз
 -- , то это непотимально наверно тогда лучше переделать под массив заказов
+
+-- 1. по оконке наверное норм.
+-- 2. У нас по условие ТЗ нужно чтобы на маршруте было более 50 заказов. Думаю надо фильтр сделать на qty_rid.
 insert into report.offices_over_3_points_310
 select src_office_id, shippingroute_name, arr_points
     , count(rid_hash) over(partition by (src_office_id, shippingroute_name)) qty_rid
