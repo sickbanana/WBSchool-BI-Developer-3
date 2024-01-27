@@ -162,7 +162,8 @@ select dictGet('dictionary.BranchOffice','office_name', toUInt64(src_office_id))
         toString(arrayMap(x->(dictGet('dictionary.BranchOffice','office_name', toUInt64(x))), arr_point)),
         '[\[\]\']', '') points -- если ',' заменить на '-' , то получается путаница, потому что в названии офиссов бывают '-'
 from report.offices_over_3_points_310
-where qty_rid > 50
+where dt_load >= toStartOfDay(now())
+      and qty_rid > 50
 order by qty_point
 limit 100
 
@@ -189,5 +190,6 @@ select dictGet('dictionary.BranchOffice','office_name', toUInt64(src_office_id))
         '[\[\]\']', '') points
     , dt_start, rid_hash, shk_id, dt_finish
 from report.offices_over_3_points_310
+where dt_load >= toStartOfDay(now())
 order by src_office_id, shippingroute_name
 limit 50 by src_office_id, shippingroute_name
