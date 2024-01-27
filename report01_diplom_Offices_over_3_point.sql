@@ -153,6 +153,9 @@ limit 50 by shippingroute_name
  -- Фильтр: Офис оформления
  -- Фильтр: Направление
  -- Отчет показывает Топ-100 по Кол-ву точек по убыванию и с кол-вом товара более 50 штук.
+
+-- Ты в даге каждый раз загружуаешь новую пачку данных. Старая пачка уже не актуальна.
+-- Нужно добавить фильтр для выбора последней актуальной пачки.
 select dictGet('dictionary.BranchOffice','office_name', toUInt64(src_office_id)) src_office_name
     , shippingroute_name, length(arr_point) qty_point, qty_rid
     , replaceRegexpAll(
