@@ -78,7 +78,7 @@ create table tmp.table_01_diplom_4_310 engine MergeTree() order by (shk_id) as
 select t1.rid_hash rid_hash, src_office_id, dst_office_id, shk_id, dt_start, dt_finish
      , dictGet('dictionary.ShippingRoute','shippingroute_name', shippingroute_id) shippingroute_name
 from tmp.table_01_diplom_1_310 t1
-left join tmp.table_01_diplom_2_310 t2
+semi join tmp.table_01_diplom_2_310 t2
 on t1.rid_hash = t2.rid_hash
 semi join tmp.table_01_diplom_3_310 t3
 on t1.rid_hash = t3.rid_hash
@@ -172,7 +172,7 @@ select dictGet('dictionary.BranchOffice','office_name', toUInt64(src_office_id))
         toString(arrayMap(x->(dictGet('dictionary.BranchOffice','office_name', toUInt64(x))), arr_point)),
         '[\[\]\']', '') points -- если ',' заменить на '-' , то получается путаница, потому что в названии офиссов бывают '-'
 from report.offices_over_3_points_310
-where dt_load >= now() - interval 1 day
+where dt_load = (select max(dt_load) from report.offices_over_3_points_310)
 order by qty_point
 limit 100
 
@@ -199,6 +199,6 @@ select dictGet('dictionary.BranchOffice','office_name', toUInt64(src_office_id))
         '[\[\]\']', '') points
     , dt_start, rid_hash, shk_id, dt_finish
 from report.offices_over_3_points_310
-where dt_load >= now() - interval 1 day
+where dt_load = (select max(dt_load) from report.offices_over_3_points_310)
 order by src_office_id, shippingroute_name
 limit 50 by src_office_id, shippingroute_name
