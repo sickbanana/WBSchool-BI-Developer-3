@@ -167,13 +167,14 @@ limit 50 by shippingroute_name
 -- Ты в даге каждый раз загружуаешь новую пачку данных. Старая пачка уже не актуальна.
 -- Нужно добавить фильтр для выбора последней актуальной пачки.
 select dictGet('dictionary.BranchOffice','office_name', toUInt64(src_office_id)) src_office_name
-    , shippingroute_name, length(arr_point) qty_point, qty_rid
+    , shippingroute_name, length(arr_point) qty_point, sum(qty_rid)
     , replaceRegexpAll(
         toString(arrayMap(x->(dictGet('dictionary.BranchOffice','office_name', toUInt64(x))), arr_point)),
         '[\[\]\']', '') points -- если ',' заменить на '-' , то получается путаница, потому что в названии офиссов бывают '-'
 from report.offices_over_3_points_310
 where dt_load = (select max(dt_load) from report.offices_over_3_points_310)
-order by qty_point
+group by src_office_name, shippingroute_name, qty_point, points
+order by points, src_office_name
 limit 100
 
 
