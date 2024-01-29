@@ -2,7 +2,6 @@ import datetime
 import json
 from clickhouse_driver import Client
 
-dbname = 'agg'
 dst_table = 'report.offices_over_3_points_310'
 
 
@@ -18,7 +17,7 @@ client = Client(data['server'][0]['host'],
                 settings={"numpy_columns": False, 'use_numpy': False},
                 compression=True)
 
-dt_load = datetime.datetime.now()
+dt_load = client.execute(f"""select now()""")[0][0]
 
 quantiles_query = f"""
     select qvan4
@@ -35,7 +34,8 @@ quantiles_query = f"""
 
 quantile_result = client.execute(quantiles_query)[0][0]
 
-for i in range(0, len(quantile_result) - 1):
+
+for i in range(0, len(quantile_result)-1):
     rid_start = int(quantile_result[i])
     rid_end = int(quantile_result[i + 1])
 
@@ -140,8 +140,8 @@ for i in range(0, len(quantile_result) - 1):
 
 
 insert_query = f"""       
-insert into report.offices_over_3_points_310
-select src_office_id, shippingroute_name, arr_points , qty_rid, rid_hash, shk_id, dt_start, dt_finish, now() dt_load -- в питоне заменю
+insert into {src_table}
+select src_office_id, shippingroute_name, arr_points , qty_rid, rid_hash, shk_id, dt_start, dt_finish, '{dt_load}' dt_load
 from
 (
     select src_office_id
