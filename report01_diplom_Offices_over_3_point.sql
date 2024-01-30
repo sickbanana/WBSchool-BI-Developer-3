@@ -203,3 +203,5 @@ from report.offices_over_3_points_310
 where dt_load = (select max(dt_load) from report.offices_over_3_points_310)
 order by src_office_id, shippingroute_name
 limit 50 by src_office_id, shippingroute_name
+
+
