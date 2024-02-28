@@ -3,6 +3,7 @@ import json
 from clickhouse_driver import Client
 
 dst_table = 'report.offices_over_3_points_310'
+dbname = 'report'
 
 
 with open('secrets/ch.json') as json_file:
@@ -140,7 +141,7 @@ for i in range(0, len(quantile_result)-1):
 
 
 insert_query = f"""       
-insert into {src_table}
+insert into {dst_table}
 select src_office_id, shippingroute_name, arr_points , qty_rid, rid_hash, shk_id, dt_start, dt_finish, '{dt_load}' dt_load
 from
 (

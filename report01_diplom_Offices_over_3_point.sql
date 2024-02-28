@@ -132,13 +132,13 @@ having length(arr_points) > 3
 -- 1. по оконке наверное норм.
 -- 2. У нас по условие ТЗ нужно чтобы на маршруте было более 50 заказов. Думаю надо фильтр сделать на qty_rid.
 insert into report.offices_over_3_points_310
-select src_office_id, shippingroute_name, arr_points , qty_rid, rid_hash, shk_id, dt_start, dt_finish, now() dt_load -- в питоне заменю
+select src_office_id, shippingroute_name, arr_points, qty_rid, rid_hash, shk_id, dt_start, dt_finish, now() dt_load -- в питоне заменю
 from
 (
     select src_office_id
       , shippingroute_name
       , arr_points
-      , count(rid_hash) over (partition by (src_office_id, shippingroute_name)) qty_rid
+      , count() over (partition by src_office_id) qty_rid
       , rid_hash
       , shk_id
       , dt_start
@@ -167,14 +167,14 @@ limit 50 by shippingroute_name
 -- Ты в даге каждый раз загружуаешь новую пачку данных. Старая пачка уже не актуальна.
 -- Нужно добавить фильтр для выбора последней актуальной пачки.
 select dictGet('dictionary.BranchOffice','office_name', toUInt64(src_office_id)) src_office_name
-    , shippingroute_name, length(arr_point) qty_point, sum(qty_rid)
+    , shippingroute_name, length(arr_point) qty_point, sum(qty_rid) qty_rid
     , replaceRegexpAll(
         toString(arrayMap(x->(dictGet('dictionary.BranchOffice','office_name', toUInt64(x))), arr_point)),
         '[\[\]\']', '') points -- если ',' заменить на '-' , то получается путаница, потому что в названии офиссов бывают '-'
 from report.offices_over_3_points_310
 where dt_load = (select max(dt_load) from report.offices_over_3_points_310)
 group by src_office_name, shippingroute_name, qty_point, points
-order by points, src_office_name
+order by qty_point desc, points, src_office_name
 limit 100
 
 
